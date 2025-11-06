@@ -169,7 +169,7 @@ async def flames_command(client, message):
     try:
         args = message.text.split(None, 2)
         if len(args) < 3:
-            await message.reply_text("❌ Usage: `/flames Name1 Name2`", quote=True)
+            await message.reply_text("✨ Usage: `/flames Name1 Name2`", quote=True)
             return
 
         name1, name2 = args[1], args[2]
@@ -198,11 +198,11 @@ async def flames_command(client, message):
 
         buttons = InlineKeyboardMarkup([
             [
-                InlineKeyboardButton("🔁 Try Again", callback_data="flames_retry"),
-                InlineKeyboardButton("💌 Share Result", switch_inline_query="flames love test"),
+                InlineKeyboardButton("🔻 ᴛʀʏ ᴀɢᴀɪɴ 🔻", callback_data="flames_retry"),
+                InlineKeyboardButton("🔻 sʜᴀʀᴇ ʀᴇsᴜʟᴛ 🔻", switch_inline_query="flames love test"),
             ],
             [
-                InlineKeyboardButton("🎭 View All Results", callback_data="flames_list")
+                InlineKeyboardButton("🔻 ᴠɪᴇᴡ ᴀʟʟ ʀᴇsᴜʟᴛs 🔻", callback_data="flames_list")
             ]
         ])
 
@@ -258,7 +258,7 @@ async def match_command(client, message):
             caption=text,
             #parse_mode="Markdown",
             reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("🔁 Try Again", callback_data="match_retry")]
+                [InlineKeyboardButton("🔻 ᴛʀʏ ᴀɢᴀɪɴ 🔻", callback_data="match_retry")]
             ])
         )
 
