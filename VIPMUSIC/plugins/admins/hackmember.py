@@ -1,5 +1,6 @@
 #from VIPMUSIC.utils.Ghostt_ban import admin_filter
 from VIPMUSIC.misc import SUDOERS
+from config import SUDOERS
 import os
 import csv
 from pyrogram import Client, filters
