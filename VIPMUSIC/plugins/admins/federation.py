@@ -10,7 +10,7 @@ from pyrogram.enums import ChatMemberStatus, ChatType, ParseMode
 from pyrogram.errors import FloodWait, PeerIdInvalid
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-from .feds_db import (
+from VIPMUSIC.mongo.feds_db import (
     get_fed_info,
     get_fed_id,
     get_feds_by_owner,
