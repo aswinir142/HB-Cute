@@ -1,150 +1,152 @@
-import asyncio
-import html
-import re
 from datetime import datetime, timedelta
-from pyrogram import Client, errors
-from pyrogram.types import Message, ChatMember
-import config
+from re import findall
+from re import sub as re_sub
+from string import ascii_lowercase
+
+from pyrogram import enums
+from pyrogram.types import Message
+
+from VIPMUSIC import app
 
 
-# ─────────── GENERAL HELPERS ─────────── #
-
-def time_formatter(milliseconds: int) -> str:
-    """Converts milliseconds to human readable format."""
-    seconds, milliseconds = divmod(int(milliseconds), 1000)
-    minutes, seconds = divmod(seconds, 60)
-    hours, minutes = divmod(minutes, 60)
-    days, hours = divmod(hours, 24)
-
-    tmp = []
-    if days:
-        tmp.append(f"{days}d")
-    if hours:
-        tmp.append(f"{hours}h")
-    if minutes:
-        tmp.append(f"{minutes}m")
-    if seconds:
-        tmp.append(f"{seconds}s")
-    return " ".join(tmp)
+def get_urls_from_text(text: str) -> bool:
+    regex = r"""(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]
+                [.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(
+                \([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\
+                ()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))""".strip()
+    return [x[0] for x in findall(regex, text)]
 
 
-def get_readable_time(seconds: int) -> str:
-    """Convert seconds to H:M:S string"""
-    count = 0
-    time_list = []
-    time_suffix_list = ["s", "m", "h", "days"]
-
-    while count < 4:
-        remainder, result = divmod(seconds, 60) if count < 2 else divmod(seconds, 24)
-        if seconds == 0 and remainder == 0:
-            break
-        time_list.append(int(result))
-        seconds = int(remainder)
-        count += 1
-
-    compiled = [
-        f"{time_list[x]}{time_suffix_list[x]}" for x in range(len(time_list)) if time_list[x] != 0
-    ]
-    compiled.reverse()
-    return " ".join(compiled)
+def extract_urls(reply_markup):
+    urls = []
+    if reply_markup.inline_keyboard:
+        buttons = reply_markup.inline_keyboard
+        for i, row in enumerate(buttons):
+            for j, button in enumerate(row):
+                if button.url:
+                    name = (
+                        "\n~\nbutton"
+                        if i * len(row) + j == 0
+                        else f"button{i * len(row) + j + 1}"
+                    )
+                    urls.append((f"{name}", button.text, button.url))
+    return urls
 
 
-async def delete_after(message: Message, delay: int = 10):
-    """Auto delete message after delay seconds."""
-    await asyncio.sleep(delay)
-    try:
-        await message.delete()
-    except Exception:
-        pass
+async def alpha_to_int(user_id_alphabet: str) -> int:
+    alphabet = list(ascii_lowercase)[:10]
+    user_id = ""
+    for i in user_id_alphabet:
+        index = alphabet.index(i)
+        user_id += str(index)
+    return int(user_id)
 
 
-async def extract_user(message: Message):
-    """Extract user id and name from a reply, mention or ID."""
-    if message.reply_to_message:
-        user = message.reply_to_message.from_user
-        return user.id, user.first_name
+async def int_to_alpha(user_id: int) -> str:
+    alphabet = list(ascii_lowercase)[:10]
+    user_id = str(user_id)
+    return "".join(alphabet[int(i)] for i in user_id)
 
-    args = message.text.split(None, 1)
-    if len(args) < 2:
-        return None, None
-    user_ref = args[1]
 
-    if user_ref.isdigit():
-        return int(user_ref), None
-    if user_ref.startswith("@"):
+async def extract_userid(message, text: str):
+    """
+    NOT TO BE USED OUTSIDE THIS FILE
+    """
+
+    def is_int(text: str):
         try:
-            user = await message._client.get_users(user_ref)
-            return user.id, user.first_name
-        except Exception:
+            int(text)
+        except ValueError:
+            return False
+        return True
+
+    text = text.strip()
+
+    if is_int(text):
+        return int(text)
+
+    entities = message.entities
+    if len(entities) < 2:
+        return (await app.get_users(text)).id
+    entity = entities[1]
+    if entity.type == enums.MessageEntityType.MENTION:
+        return (await app.get_users(text)).id
+    if entity.type == enums.MessageEntityType.MENTION:
+        return entity.user.id
+    return None
+
+
+async def extract_user_and_reason(message, sender_chat=False):
+    args = message.text.strip().split()
+    text = message.text
+    user = None
+    reason = None
+    if message.reply_to_message:
+        reply = message.reply_to_message
+        # if reply to a message and no reason is given
+        if reply.from_user:
+            id_ = reply.from_user.id
+
+        elif reply.sender_chat and reply.sender_chat != message.chat.id and sender_chat:
+            id_ = reply.sender_chat.id
+        else:
             return None, None
-    return None, None
+        reason = None if len(args) < 2 else text.split(None, 1)[1]
+        return id_, reason
+
+    # if not reply to a message and no reason is given
+    if len(args) == 2:
+        user = text.split(None, 1)[1]
+        return await extract_userid(message, user), None
+
+    # if reason is given
+    if len(args) > 2:
+        user, reason = text.split(None, 2)[1:]
+        return await extract_userid(message, user), reason
+
+    return user, reason
 
 
-# ─────────── ADMIN + PERMISSIONS ─────────── #
+async def extract_user(message):
+    return (await extract_user_and_reason(message))[0]
 
-async def is_admin(client: Client, chat_id: int, user_id: int) -> bool:
-    """Check if a user is admin in chat."""
+
+async def time_converter(message: Message, time_value: str) -> datetime:
+    unit = ["m", "h", "d"]  # m == minutes | h == hours | d == days
+    check_unit = "".join(list(filter(time_value[-1].lower().endswith, unit)))
+    currunt_time = datetime.now()
+    time_digit = time_value[:-1]
+    if not time_digit.isdigit():
+        return await message.reply_text("Incorrect time specified")
+    if check_unit == "m":
+        temp_time = currunt_time + timedelta(minutes=int(time_digit))
+    elif check_unit == "h":
+        temp_time = currunt_time + timedelta(hours=int(time_digit))
+    elif check_unit == "d":
+        temp_time = currunt_time + timedelta(days=int(time_digit))
+    else:
+        return await message.reply_text("Incorrect time specified.")
+    return temp_time
+
+
+def extract_text_and_keyb(ikb, text: str, row_width: int = 2):
+    keyboard = {}
     try:
-        member: ChatMember = await client.get_chat_member(chat_id, user_id)
-        return member.status in ("administrator", "creator")
-    except errors.UserNotParticipant:
-        return False
+        text = text.strip()
+        text = text.removeprefix("`")
+        text = text.removesuffix("`")
+        text, keyb = text.split("~")
+
+        keyb = findall(r"\[.+\,.+\]", keyb)
+        for btn_str in keyb:
+            btn_str = re_sub(r"[\[\]]", "", btn_str)
+            btn_str = btn_str.split(",")
+            btn_txt, btn_url = btn_str[0], btn_str[1].strip()
+
+            if not get_urls_from_text(btn_url):
+                continue
+            keyboard[btn_txt] = btn_url
+        keyboard = ikb(keyboard, row_width)
     except Exception:
-        return False
-
-
-def is_sudo(user_id: int) -> bool:
-    """Check if user is in sudo or owner list."""
-    try:
-        return user_id in [int(x) for x in config.SUDOERS] or user_id == int(config.OWNER_ID)
-    except Exception:
-        return False
-
-
-async def admin_filter(client: Client, message: Message) -> bool:
-    """Filter function usable with Pyrogram filters for admin-only commands."""
-    user_id = message.from_user.id if message.from_user else None
-    chat_id = message.chat.id
-    if not user_id:
-        return False
-    return await is_admin(client, chat_id, user_id)
-
-
-async def mention_html(user):
-    """Return a clickable HTML mention."""
-    if not user:
-        return "Unknown"
-    return f"<a href='tg://user?id={user.id}'>{html.escape(user.first_name)}</a>"
-
-
-async def mention_markdown(user):
-    """Return a markdown mention."""
-    if not user:
-        return "Unknown"
-    return f"[{user.first_name}](tg://user?id={user.id})"
-
-
-# ─────────── TIME + LOGGING ─────────── #
-
-def utcnow() -> datetime:
-    """UTC timestamp."""
-    return datetime.utcnow()
-
-
-def pretty_datetime() -> str:
-    """Formatted UTC datetime string."""
-    return utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
-
-
-async def log_exception(client: Client, message: Message, error: Exception):
-    """Log error in logger group."""
-    from VIPMUSIC import config
-    try:
-        err_text = f"<b>⚠️ Error Report</b>\n\n"
-        err_text += f"<b>Chat:</b> {message.chat.title if message.chat else 'Private'}\n"
-        err_text += f"<b>User:</b> {message.from_user.id if message.from_user else 'N/A'}\n"
-        err_text += f"<b>Time:</b> {pretty_datetime()}\n\n"
-        err_text += f"<code>{html.escape(str(error))}</code>"
-        await client.send_message(int(config.LOG_GROUP_ID), err_text)
-    except Exception:
-        pass
+        return
+    return text, keyboard
