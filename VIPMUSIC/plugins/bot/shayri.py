@@ -295,7 +295,7 @@ SHAYRI_COMMAND = ["pickupline", "uruttu", "urutu", "pickup"]
 async def shayri_group(client: Client, message: Message):
     await message.reply_text(
         f"<blockquote>{random.choice(SHAYRI)}</blockquote>",
-        parse_mode="html",
+        #parse_mode="html",
         reply_markup=InlineKeyboardMarkup(
             [
                 [
@@ -319,7 +319,7 @@ async def shayri_group(client: Client, message: Message):
 async def shayri_private(client: Client, message: Message):
     await message.reply_text(
         f"<blockquote>{random.choice(SHAYRI)}</blockquote>",
-        parse_mode="html",
+        #parse_mode="html",
         reply_markup=InlineKeyboardMarkup(
             [
                 [
