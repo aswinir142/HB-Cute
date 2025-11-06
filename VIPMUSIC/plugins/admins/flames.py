@@ -153,7 +153,7 @@ def emoji_bar(percent):
 
 
 # --- /FLAMES COMMAND ---
-@Client.on_message(filters.command("flames"))
+@app.on_message(filters.command("flames"))
 async def flames_command(client, message):
     try:
         args = message.text.split(None, 2)
@@ -202,7 +202,7 @@ async def flames_command(client, message):
 
 
 # --- /MATCH COMMAND ---
-@Client.on_message(filters.command("match"))
+@app.on_message(filters.command("match"))
 async def match_command(client, message):
     try:
         if not message.chat.type in ["supergroup", "group"]:
