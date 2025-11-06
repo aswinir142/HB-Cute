@@ -123,9 +123,9 @@ def make_poster(image_url, name1, name2, title, percentage):
     text_color = "black" if brightness > 130 else "white"
     draw = ImageDraw.Draw(bg)
     try:
-        font_title = ImageFont.truetype("arial.ttf", 60)
-        font_text = ImageFont.truetype("arial.ttf", 45)
-        font_small = ImageFont.truetype("arial.ttf", 35)
+        font_title = ImageFont.truetype("VIPMUSIC/assets/DejaVuSans-Bold.ttf", 60)
+        font_text = ImageFont.truetype("VIPMUSIC/assets/DejaVuSans.ttf", 45)
+        font_small = ImageFont.truetype("VIPMUSIC/assets/DejaVuSans.ttf", 35)
     except:
         font_title = font_text = font_small = ImageFont.load_default()
 
