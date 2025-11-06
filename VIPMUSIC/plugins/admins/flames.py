@@ -144,11 +144,11 @@ def make_poster(image_url, name1, name2, title, percentage):
         w, h = draw.textsize(text, font=font)
         draw.text(((900 - w) / 2, y), text, fill=text_color, font=font)
 
-    draw_centered_text(40, "𝑭 𖹭 𝑳 𖹭 𝑨 𖹭 𝑴 𖹭 𝑬 𖹭 𝑺", font_title)
-    draw_centered_text(170, f"ᰔᩚ {name1.title()} ❤️ {name2.title()} ᰔᩚ", font_text)
+    draw_centered_text(40, "𝑭 𖹭 𝑳 𖹭 𝑨 𖹭 𝑴 𖹭 𝑬 𖹭 𝑺") #, font_title)
+    draw_centered_text(170, f"✰ {name1.title()} ❤️ {name2.title()} ✰", font_text)
     draw_centered_text(270, f"✰ Result: {title}", font_text)
-    draw_centered_text(360, f"⋆.𐙚 ̊ Compatibility: {percentage}%", font_small)
-    draw_centered_text(530, "˙⋆✮ мᴀᴅᴇ ᴡɪᴛʜ ❤️ 𝐇в-𝐅ᴀᴍ ✮⋆˙", font_small)
+    draw_centered_text(360, f"⋆.✰ ̊ Compatibility: {percentage}%", font_small)
+    draw_centered_text(530, "˙⋆✮ мᴀᴅᴇ ᴡɪᴛʜ ❤️ 𝐇в-𝐅ᴀᴍ ✮⋆˙") #, font_small)
 
     bio = io.BytesIO()
     bio.name = "ANNIEMUSIC/assets/annie/ANNIECP.png" #"flames_result.jpg"   
@@ -186,14 +186,14 @@ async def flames_command(client, message):
         poster = make_poster(image_url, name1, name2, result["title"], love)
 
         caption = (
-            f"{result['title']}\n\n"
-            f"👩‍❤️‍👨 **{name1.title()} × {name2.title()}**\n\n"
-            f"💞 Compatibility: **{love}%** {emoji_bar(love)}\n"
-            f"💓 Emotional Bond: **{emotion}%** {emoji_bar(emotion)}\n"
-            f"😄 Fun Level: **{fun}%** {emoji_bar(fun)}\n"
-            f"💬 Communication: **{communication}%** {emoji_bar(communication)}\n"
-            f"🤝 Trust: **{trust}%** {emoji_bar(trust)}\n\n"
-            f"📝 {result['desc']}"
+            f"<blockquote>{result['title']}</blockquote>\n"
+            f"<blockquote>💥 **{name1.title()} ❣️ {name2.title()}**\n"
+            f"💞 𝐂ᴏᴍᴘᴀᴛɪʙɪʟɪᴛʏ: **{love}%**\n{emoji_bar(love)}\n"
+            f"💓 𝐄ᴍᴏᴛɪᴏɴᴀʟ𝐁ᴏɴᴅ: **{emotion}%**\n{emoji_bar(emotion)}\n"
+            f"🤞🏻 𝐅ᴜɴ𝐋ᴇᴠᴇʟ: **{fun}%**\n{emoji_bar(fun)}\n"
+            f"✨ 𝐂ᴏᴍᴍᴜɴɪᴄᴀᴛɪᴏɴ: **{communication}%**\n{emoji_bar(communication)}\n"
+            f"💯 𝐓ʀᴜsᴛ: **{trust}%**\n{emoji_bar(trust)}</blockquote>\n"
+            f"<blockquote>🔥 {result['desc']}</blockquote>"
         )
 
         buttons = InlineKeyboardMarkup([
