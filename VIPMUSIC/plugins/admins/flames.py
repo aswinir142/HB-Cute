@@ -17,9 +17,7 @@ RESULTS = {
         "desc": "A strong bond filled with laughter, trust, and memories. You two are perfect as friends forever! 🤝",
         "folder": "VIPMUSIC/assets/flames/friends",
         "urls": [
-            "https://i.imgur.com/4eAOSDq.jpeg",
-"https://i.imgur.com/4eAOSDq.jpeg",
-"https://i.imgur.com/4eAOSDq.jpeg",
+            ""
         ]
     },
     "L": {
@@ -28,9 +26,7 @@ RESULTS = {
         "desc": "There’s a spark and magic between you both — a true love story is forming! 💞",
         "folder": "VIPMUSIC/assets/flames/love",
         "urls": [
-            "https://i.imgur.com/4eAOSDq.jpeg",
-"https://i.imgur.com/4eAOSDq.jpeg",
-"https://i.imgur.com/4eAOSDq.jpeg",
+            ""
         ]
     },
     "A": {
@@ -39,9 +35,7 @@ RESULTS = {
         "desc": "You both care deeply for each other — gentle hearts and pure emotion bloom! 🌸",
         "folder": "VIPMUSIC/assets/flames/affection",
         "urls": [
-            "https://i.imgur.com/4eAOSDq.jpeg",
-"https://i.imgur.com/4eAOSDq.jpeg",
-"https://i.imgur.com/4eAOSDq.jpeg",
+            ""
         ]
     },
     "M": {
@@ -50,9 +44,7 @@ RESULTS = {
         "desc": "Destiny has already written your names together — a wedding bell symphony awaits! 💫",
         "folder": "VIPMUSIC/assets/flames/marriage",
         "urls": [
-            "https://i.imgur.com/4eAOSDq.jpeg",
-"https://i.imgur.com/4eAOSDq.jpeg",
-"https://i.imgur.com/4eAOSDq.jpeg",
+            ""
         ]
     },
     "E": {
@@ -61,9 +53,7 @@ RESULTS = {
         "desc": "Clashing energies and fiery tempers — maybe not meant to be this time 😅",
         "folder": "VIPMUSIC/assets/flames/enemy",
         "urls": [
-            "https://i.imgur.com/4eAOSDq.jpeg",
-"https://i.imgur.com/4eAOSDq.jpeg",
-"https://i.imgur.com/4eAOSDq.jpeg",
+            ""
         ]
     },
     "S": {
@@ -72,9 +62,7 @@ RESULTS = {
         "desc": "You both share a sibling-like connection — teasing, caring, and protective 💫",
         "folder": "VIPMUSIC/assets/flames/siblings",
         "urls": [
-            "https://i.imgur.com/4eAOSDq.jpeg",
-"https://i.imgur.com/4eAOSDq.jpeg",
-"https://i.imgur.com/4eAOSDq.jpeg",
+            ""
         ]
     },
 }
