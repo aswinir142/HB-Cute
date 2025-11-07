@@ -4,7 +4,7 @@ import requests
 import aiohttp
 import asyncio
 from VIPMUSIC import app
-from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageStat
+from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageStat, ImageEnhance
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from pyrogram.enums import ChatType
@@ -135,44 +135,73 @@ def make_poster(image_url, name1, name2, title_cap, percentage):
         # Use solid color fallback background
         bg = Image.new("RGB", (900, 600), (255, 192, 203))
 
+    # Resize and blur background for soft focus
     bg = bg.resize((900, 600)).filter(ImageFilter.GaussianBlur(4))
+
+    # --- Adjust background brightness if too bright ---
     stat = ImageStat.Stat(bg)
     brightness = sum(stat.mean[:3]) / 3
-    text_color = "black" if brightness > 130 else "white"
+    if brightness > 160:  # too bright → darken
+        bg = ImageEnhance.Brightness(bg).enhance(0.8)
+        text_color = "white"
+    elif brightness < 90:  # too dark → brighten
+        bg = ImageEnhance.Brightness(bg).enhance(1.2)
+        text_color = "white"
+    else:
+        text_color = "black" if brightness > 130 else "white"
 
+    draw = ImageDraw.Draw(bg)
 
-draw = ImageDraw.Draw(bg)
-try:
-    font_title = ImageFont.truetype("VIPMUSIC/assets/NotoSansMath-Regular.ttf", 60)
-    font_text = ImageFont.truetype("VIPMUSIC/assets/Rekalgera-Regular.otf", 45)
-    font_small = ImageFont.truetype("VIPMUSIC/assets/Sprintura Demo.otf", 35)
-    font_fancy = ImageFont.truetype("VIPMUSIC/assets/NotoSansMath-Regular.ttf", 35)
-except:
-    font_title = font_text = font_small = font_fancy = ImageFont.load_default()
+    # --- Load fonts ---
+    try:
+        font_title = ImageFont.truetype("VIPMUSIC/assets/NotoSansMath-Regular.ttf", 60)
+        font_text = ImageFont.truetype("VIPMUSIC/assets/Rekalgera-Regular.otf", 45)
+        font_small = ImageFont.truetype("VIPMUSIC/assets/Sprintura Demo.otf", 35)
+        font_fancy = ImageFont.truetype("VIPMUSIC/assets/NotoSansMath-Regular.ttf", 35)
+    except Exception as e:
+        print(f"[FLAMES] Font load failed: {e}")
+        font_title = font_text = font_small = font_fancy = ImageFont.load_default()
 
-def safe_text(text: str):
-    # Remove all non-ASCII characters (like emojis 💔❤️✨ etc.)
-    return text.encode("ascii", "ignore").decode("ascii")
+    # --- Remove emojis/unicode safely ---
+    def safe_text(text: str):
+        return text.encode("ascii", "ignore").decode("ascii")
 
-def draw_centered_text(y, text, font=None):
-    text = safe_text(str(text))  # sanitize before drawing
-    fnt = font if font else ImageFont.load_default()
-    w, h = draw.textsize(text, font=fnt)
-    draw.text(((900 - w) / 2, y), text, fill=text_color, font=fnt)
+    # --- Centered text with soft shadow (glow effect) ---
+    def draw_centered_text(y, text, font=None, max_width=850):
+        text = safe_text(str(text))
+        fnt = font if font else ImageFont.load_default()
 
-# --- Drawing text safely ---
-draw_centered_text(40, "F L A M E S", font_title)
-draw_centered_text(170, f"{name1.title()} x {name2.title()}", font_text)
-draw_centered_text(270, f"Result: {title_cap}", font_text)
-draw_centered_text(360, f"Compatibility: {percentage}%", font_small)
-draw_centered_text(530, "Made With x @HeartBeat_Fam", font_fancy)
+        # Auto shrink font if text too wide
+        w, h = draw.textsize(text, font=fnt)
+        while w > max_width and hasattr(fnt, "path") and fnt.size > 15:
+            fnt = ImageFont.truetype(fnt.path, fnt.size - 2)
+            w, h = draw.textsize(text, font=fnt)
 
-# --- Save output image ---
-bio = io.BytesIO()
-bio.name = "flames_result.jpg"
-bg.save(bio, "JPEG")
-bio.seek(0)
-return bio
+        x = (900 - w) / 2
+        shadow_color = (0, 0, 0, 150) if text_color == "white" else (255, 255, 255, 150)
+
+        # Draw shadow (offset around text)
+        offsets = [(-2, -2), (-2, 2), (2, -2), (2, 2)]
+        for ox, oy in offsets:
+            draw.text((x + ox, y + oy), text, font=fnt, fill=shadow_color)
+
+        # Draw main text
+        draw.text((x, y), text, fill=text_color, font=fnt)
+
+    # --- Draw content ---
+    draw_centered_text(40, "F L A M E S", font_title)
+    draw_centered_text(170, f"{name1.title()} x {name2.title()}", font_text)
+    draw_centered_text(270, f"Result: {title_cap}", font_text)
+    draw_centered_text(360, f"Compatibility: {percentage}%", font_small)
+    draw_centered_text(530, "Made With x @HeartBeat_Fam", font_fancy)
+
+    # --- Save output image ---
+    bio = io.BytesIO()
+    bio.name = "flames_result.jpg"
+    bg.save(bio, "JPEG")
+    bio.seek(0)
+    return bio
+
 
 
 # --- EMOJI BAR FUNCTION ---
