@@ -143,9 +143,9 @@ def make_poster(image_url, name1, name2, title, percentage):
         font_title = font_text = font_small = ImageFont.load_default()
 
     def draw_centered_text(y, text, font=None):
-    fnt = font if font else ImageFont.load_default()
-    w, h = draw.textsize(text, font=fnt)
-    draw.text(((900 - w) / 2, y), text, fill=text_color, font=fnt)
+        fnt = font if font else ImageFont.load_default()
+        w, h = draw.textsize(text, font=fnt)
+        draw.text(((900 - w) / 2, y), text, fill=text_color, font=fnt)
 
     draw_centered_text(40, "𝑭 𖹭 𝑳 𖹭 𝑨 𖹭 𝑴 𖹭 𝑬 𖹭 𝑺") #, font_title)
     draw_centered_text(170, f"✰ {name1.title()} ❤️ {name2.title()} ✰", font_text)
