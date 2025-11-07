@@ -143,7 +143,6 @@ def make_poster(image_url, name1, name2, title, percentage):
         font_title = font_text = font_small = ImageFont.load_default()
 
     def draw_centered_text(y, text, font=None):
-    # use default font if not provided
     fnt = font if font else ImageFont.load_default()
     w, h = draw.textsize(text, font=fnt)
     draw.text(((900 - w) / 2, y), text, fill=text_color, font=fnt)
