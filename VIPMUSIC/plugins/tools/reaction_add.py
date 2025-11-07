@@ -4,11 +4,11 @@ from pyrogram import filters
 from pyrogram.types import Message
 from VIPMUSIC import app
 from config import BANNED_USERS, MENTION_USERNAMES, START_REACTIONS
-from VIPMUSIC.utils.database import get_sudoers, add_sudo, remove_sudo
+from VIPMUSIC.utils.database import mongodb, get_sudoers, add_sudo, remove_sudo
 from VIPMUSIC.misc import SUDOERS, db
 
 # =================== DATABASE COLLECTION ===================
-COLLECTION = db.reaction_mentions
+COLLECTION = mongodb["reaction_mentions"]
 
 # =================== CACHE ===================
 custom_mentions = set(MENTION_USERNAMES)
