@@ -1,6 +1,7 @@
 import random
 import io
-import requests
+import os
+import aiohttp
 from VIPMUSIC import app
 from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageStat, ImageEnhance
 from pyrogram import filters
@@ -8,48 +9,105 @@ from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from pyrogram.enums import ChatType
 
 
-# --- FLAMES RESULT CONFIG ---
+# --- CONFIG: FLAMES RESULT TYPES ---
 RESULTS = {
     "F": {
-        "title": "💛 𝐅ʀɪᴇɴᴅ𝗌",
+        "title": "💛 𝐅ʀɪᴇɴᴅ𝘀",
         "title_cap": "Friends",
         "desc": "A strong bond filled with laughter, trust, and memories. You two are perfect as friends forever! 🤝",
-        "folder": "VIPMUSIC/assets/flames/friends"
+        "folder": "VIPMUSIC/assets/flames/friends",
+        "urls": [
+            "https://i.imgur.com/xxYSHvX.jpg",
+            "https://i.imgur.com/AUG3C7W.jpeg"
+        ]
     },
     "L": {
         "title": "❤️ 𝐋ᴏᴠᴇ",
         "title_cap": "Love",
         "desc": "There’s a spark and magic between you both — a true love story is forming! 💞",
-        "folder": "VIPMUSIC/assets/flames/love"
+        "folder": "VIPMUSIC/assets/flames/love",
+        "urls": [
+            "https://i.imgur.com/4dyLQZe.jpg",
+            "https://i.imgur.com/Y8QoP7W.jpeg"
+        ]
     },
     "A": {
         "title": "💖 𝐀ғғᴇᴄᴛɪᴏɴ",
         "title_cap": "Affection",
         "desc": "You both care deeply for each other — gentle hearts and pure emotion bloom! 🌸",
-        "folder": "VIPMUSIC/assets/flames/affection"
+        "folder": "VIPMUSIC/assets/flames/affection",
+        "urls": [
+            "https://i.imgur.com/pnzjvBS.jpg",
+            "https://i.imgur.com/S3ztPBl.jpeg"
+        ]
     },
     "M": {
         "title": "💍 𝐌ᴀʀʀɪᴀɢᴇ",
         "title_cap": "Marriage",
         "desc": "Destiny has already written your names together — a wedding bell symphony awaits! 💫",
-        "folder": "VIPMUSIC/assets/flames/marriage"
+        "folder": "VIPMUSIC/assets/flames/marriage",
+        "urls": [
+            "https://i.imgur.com/ttVwxeD.jpg",
+            "https://i.imgur.com/d9cNG3u.jpeg"
+        ]
     },
     "E": {
         "title": "💔 𝐄ɴᴇᴍʏ",
         "title_cap": "Enemy",
         "desc": "Clashing energies and fiery tempers — maybe not meant to be this time 😅",
-        "folder": "VIPMUSIC/assets/flames/enemy"
+        "folder": "VIPMUSIC/assets/flames/enemy",
+        "urls": [
+            "https://i.imgur.com/y4yUq5D.jpg",
+            "https://i.imgur.com/b4Zk1km.jpeg"
+        ]
     },
     "S": {
-        "title": "💜 𝐒ɪʙʟɪɴɢ𝗌",
+        "title": "💜 𝐒ɪʙʟɪɴɢ𝘴",
         "title_cap": "Siblings",
         "desc": "You both share a sibling-like connection — teasing, caring, and protective 💫",
-        "folder": "VIPMUSIC/assets/flames/siblings"
+        "folder": "VIPMUSIC/assets/flames/siblings",
+        "urls": [
+            "https://i.imgur.com/VK5mFdo.jpg",
+            "https://i.imgur.com/1G8bbP6.jpeg"
+        ]
     },
 }
 
 
-# --- FLAMES LOGIC ---
+# --- IMAGE PICKER (Local or URL) ---
+async def get_random_image(result_letter):
+    result = RESULTS[result_letter]
+    folder = result["folder"]
+    urls = result["urls"]
+
+    local_files = []
+    if os.path.isdir(folder):
+        local_files = [
+            os.path.join(folder, f)
+            for f in os.listdir(folder)
+            if f.lower().endswith((".jpg", ".jpeg", ".png"))
+        ]
+
+    # randomly pick local or URL
+    if random.choice([True, False]) and local_files:
+        choice = random.choice(local_files)
+        print(f"[FLAMES] Selected local: {choice}")
+        return Image.open(choice).convert("RGB")
+
+    else:
+        if not urls:
+            raise ValueError("No URLs available for this category.")
+        url = random.choice(urls)
+        print(f"[FLAMES] Selected URL: {url}")
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as resp:
+                if resp.status != 200:
+                    raise Exception(f"Failed to download image: {resp.status}")
+                data = await resp.read()
+        return Image.open(io.BytesIO(data)).convert("RGB")
+
+
+# --- FLAMES RESULT LOGIC ---
 def flames_result(name1, name2):
     n1, n2 = name1.replace(" ", "").lower(), name2.replace(" ", "").lower()
     for letter in n1:
@@ -69,68 +127,37 @@ def flames_result(name1, name2):
 
 
 # --- CREATE POSTER ---
-def make_poster(image_path, name1, name2, title_cap, percentage):
-    try:
-        bg = Image.open(image_path).convert("RGB")
-    except Exception as e:
-        print(f"[FLAMES] Image open failed: {e}")
-        bg = Image.new("RGB", (900, 600), (255, 192, 203))
-
+def make_poster(bg, name1, name2, title_cap, percentage):
     bg = bg.resize((900, 600)).filter(ImageFilter.GaussianBlur(4))
-
-    # Adjust brightness
     stat = ImageStat.Stat(bg)
     brightness = sum(stat.mean[:3]) / 3
-    if brightness > 160:
-        bg = ImageEnhance.Brightness(bg).enhance(0.8)
-        text_color = "white"
-    elif brightness < 90:
-        bg = ImageEnhance.Brightness(bg).enhance(1.2)
-        text_color = "white"
-    else:
-        text_color = "black" if brightness > 130 else "white"
+    text_color = "white" if brightness < 130 else "black"
 
     draw = ImageDraw.Draw(bg)
-
-    # Fonts
     try:
         font_title = ImageFont.truetype("VIPMUSIC/assets/NotoSansMath-Regular.ttf", 60)
         font_text = ImageFont.truetype("VIPMUSIC/assets/Rekalgera-Regular.otf", 45)
         font_small = ImageFont.truetype("VIPMUSIC/assets/Sprintura Demo.otf", 35)
         font_fancy = ImageFont.truetype("VIPMUSIC/assets/NotoSansMath-Regular.ttf", 35)
-    except Exception as e:
-        print(f"[FLAMES] Font load failed: {e}")
+    except Exception:
         font_title = font_text = font_small = font_fancy = ImageFont.load_default()
 
-    def safe_text(text):
-        return text.encode("ascii", "ignore").decode("ascii")
-
-    def draw_centered_text(y, text, font=None, max_width=850):
-        text = safe_text(str(text))
-        fnt = font or ImageFont.load_default()
-        w, h = draw.textsize(text, font=fnt)
-        while w > max_width and hasattr(fnt, "path") and fnt.size > 15:
-            fnt = ImageFont.truetype(fnt.path, fnt.size - 2)
-            w, h = draw.textsize(text, font=fnt)
-
+    def draw_centered(y, text, font):
+        w, h = draw.textsize(text, font=font)
         x = (900 - w) / 2
-        shadow_color = (0, 0, 0, 150) if text_color == "white" else (255, 255, 255, 150)
-        for ox, oy in [(-2, -2), (-2, 2), (2, -2), (2, 2)]:
-            draw.text((x + ox, y + oy), text, font=fnt, fill=shadow_color)
-        draw.text((x, y), text, fill=text_color, font=fnt)
+        draw.text((x, y), text, font=font, fill=text_color)
 
-    # Text layout
-    draw_centered_text(40, "F L A M E S", font_title)
-    draw_centered_text(170, f"{name1.title()} x {name2.title()}", font_text)
-    draw_centered_text(270, f"Result: {title_cap}", font_text)
-    draw_centered_text(360, f"Compatibility: {percentage}%", font_small)
-    draw_centered_text(530, "Made With x @HeartBeat_Fam", font_fancy)
+    draw_centered(40, "F L A M E S", font_title)
+    draw_centered(170, f"{name1.title()} x {name2.title()}", font_text)
+    draw_centered(270, f"Result: {title_cap}", font_text)
+    draw_centered(360, f"Compatibility: {percentage}%", font_small)
+    draw_centered(530, "Made With 💞 @HeartBeat_Fam", font_fancy)
 
-    bio = io.BytesIO()
-    bio.name = "flames_result.jpg"
-    bg.save(bio, "JPEG")
-    bio.seek(0)
-    return bio
+    output = io.BytesIO()
+    output.name = "flames_result.jpg"
+    bg.save(output, "JPEG")
+    output.seek(0)
+    return output
 
 
 # --- EMOJI BAR ---
@@ -152,7 +179,7 @@ async def flames_command(client, message):
         result_letter = flames_result(name1, name2)
         result = RESULTS[result_letter]
 
-        image_path = f"{result['folder']}/{result_letter.lower()}{random.randint(1,5)}.jpg"
+        bg = await get_random_image(result_letter)
 
         love = random.randint(60, 100) if result_letter in "LAM" else random.randint(10, 70)
         emotion = random.randint(60, 100)
@@ -160,7 +187,7 @@ async def flames_command(client, message):
         communication = random.randint(50, 100)
         trust = random.randint(60, 100)
 
-        poster = make_poster(image_path, name1, name2, result["title_cap"], love)
+        poster = make_poster(bg, name1, name2, result["title_cap"], love)
 
         caption = (
             f"<blockquote>{result['title']}</blockquote>\n"
@@ -178,9 +205,7 @@ async def flames_command(client, message):
                 InlineKeyboardButton("🔻 ᴛʀʏ ᴀɢᴀɪɴ 🔻", callback_data="flames_retry"),
                 InlineKeyboardButton("🔻 sʜᴀʀᴇ ʀᴇsᴜʟᴛ 🔻", switch_inline_query="flames love test"),
             ],
-            [
-                InlineKeyboardButton("🔻 ᴠɪᴇᴡ ᴀʟʟ ʀᴇsᴜʟᴛs 🔻", callback_data="flames_list")
-            ]
+            [InlineKeyboardButton("🔻 ᴠɪᴇᴡ ᴀʟʟ ʀᴇsᴜʟᴛs 🔻", callback_data="flames_list")]
         ])
 
         await message.reply_photo(photo=poster, caption=caption, reply_markup=buttons)
@@ -224,10 +249,16 @@ async def match_command(client, message):
                 f"{emoji_bar(percent)}\n📝 {result['desc']}\n{alert}</blockquote>\n"
             )
 
-        image_path = f"{random.choice(list(RESULTS.values()))['folder']}/{random.choice('flames').lower()}{random.randint(1,5)}.jpg"
+        random_result = random.choice(list(RESULTS.keys()))
+        bg = await get_random_image(random_result)
+
+        output = io.BytesIO()
+        output.name = "match_result.jpg"
+        bg.save(output, "JPEG")
+        output.seek(0)
 
         await message.reply_photo(
-            photo=image_path,
+            photo=output,
             caption=text,
             reply_markup=InlineKeyboardMarkup([
                 [InlineKeyboardButton("🔻 ᴛʀʏ ᴀɢᴀɪɴ 🔻", callback_data="match_retry")]
