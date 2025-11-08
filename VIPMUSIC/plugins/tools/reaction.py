@@ -176,7 +176,7 @@ async def list_reactions(client, message: Message):
         return await message.reply_text("ℹ️ No mention triggers found.")
 
     text = "\n".join(f"• `{m}`" for m in sorted(custom_mentions))
-    await message.reply_text(f"**🧠 Reaction Triggers:**\n{text}")
+    await message.reply_text(f"**💥 Reaction Triggers:**\n{text}")
 
 # ---------------- /clearreact ----------------
 @app.on_message(filters.command("clearreact") & ~BANNED_USERS)
@@ -216,7 +216,7 @@ async def react_on_mentions(client, message: Message):
                 try:
                     await message.react(emoji)
                 except Exception:
-                    await message.react("❤️")
+                    await message.react(emoji)
                 return
 
         # 2️⃣ ID-based detection
@@ -226,7 +226,7 @@ async def react_on_mentions(client, message: Message):
                 try:
                     await message.react(emoji)
                 except Exception:
-                    await message.react("❤️")
+                    await message.react(emoji)
                 return
 
         # 3️⃣ Keyword match fallback
@@ -238,7 +238,7 @@ async def react_on_mentions(client, message: Message):
                 try:
                     await message.react(emoji)
                 except Exception:
-                    await message.react("❤️")
+                    await message.react(emoji)
                 return
 
     except Exception as e:
