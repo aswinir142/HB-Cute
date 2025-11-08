@@ -145,10 +145,10 @@ def make_poster(image_url, name1, name2, title_cap, percentage):
 
         # --- Load fonts ---
         try:
-            font_title = ImageFont.truetype("VIPMUSIC/assets/Astroz Trial.ttf", 60)
+            font_title = ImageFont.truetype("VIPMUSIC/assets/Astroz Trial.ttf", 80)
             font_text = ImageFont.truetype("VIPMUSIC/assets/Sprintura Demo.otf", 45)
-            font_small = ImageFont.truetype("VIPMUSIC/assets/Bilderberg Italic OTF.otf", 35)
-            font_fancy = ImageFont.truetype("VIPMUSIC/assets/Rostex-Regular.ttf", 35)
+            font_small = ImageFont.truetype("VIPMUSIC/assets/Bilderberg Italic OTF.otf", 70)
+            font_fancy = ImageFont.truetype("VIPMUSIC/assets/Rostex-Regular.ttf", 15)
         except Exception as e:
             print(f"[FLAMES] Font load failed: {e}")
             font_title = font_text = font_small = font_fancy = ImageFont.load_default()
@@ -191,7 +191,7 @@ def make_poster(image_url, name1, name2, title_cap, percentage):
 # --- EMOJI BAR ---
 def emoji_bar(percent):
     full = int(percent / 20)
-    return "✩" * full + "★" * (5 - full)
+    return "★" * full + "✩" * (5 - full)
 
 
 # --- /FLAMES COMMAND ---
