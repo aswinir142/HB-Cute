@@ -112,11 +112,11 @@ def draw_result(image, title, desc, percent):
             draw.text((x + ox, y + oy), text, font=font, fill=shadow_color)
         draw.text((x, y), text, font=font, fill=fill)
 
-    title_w, _ = draw.textsize(title, font=font_title)
+    title_w, _ = draw.textsize(title_cap, font=font_title)
     percent_w, _ = draw.textsize(f"{percent}%", font=font_percent)
     desc_w, _ = draw.textsize(desc, font=font_desc)
 
-    shadowed_text((W - title_w) / 2, H * 0.25, title, font_title)
+    shadowed_text((W - title_w) / 2, H * 0.25, title_cap, font_title)
     shadowed_text((W - percent_w) / 2, H * 0.45, f"{percent}%", font_percent)
     shadowed_text((W - desc_w) / 2, H * 0.65, desc, font_desc)
     return image
@@ -142,7 +142,7 @@ async def flames_command(client, message):
         result = RESULTS[result_letter]
 
         bg = await get_random_image(result_letter)
-        bg = draw_result(bg, result["title"], result["desc"], random.randint(60, 100))
+        bg = draw_result(bg, result["title_cap"], result["desc"], random.randint(60, 100))
         buffer = io.BytesIO()
         bg.save(buffer, "JPEG")
         buffer.seek(0)
