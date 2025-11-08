@@ -171,10 +171,10 @@ def make_poster(image_url, name1, name2, title_cap, percentage):
 
         # --- Draw texts on poster ---
         draw_centered_text(40, "F L A M E S", font_title)
-        draw_centered_text(170, f"{name1.title()} x {name2.title()}\n•••\n", font_small)
-        draw_centered_text(270, f"{title_cap}", font_text)
-        draw_centered_text(360, f"Compatibility: {percentage}%", font_text)
-        draw_centered_text(530, "Made By x @HeartBeat_Fam", font_fancy)
+        draw_centered_text(530, f"{name1.title()} x {name2.title()}\n-----\n", font_small)
+        draw_centered_text(360, f"{title_cap}", font_text)
+        draw_centered_text(260, f"Compatibility: {percentage}%", font_text)
+        draw_centered_text(130, "Made By x @HeartBeat_Fam", font_fancy)
 
         # --- Output image ---
         bio = io.BytesIO()
@@ -218,8 +218,8 @@ async def flames_command(client, message):
         poster = make_poster(image_source, name1, name2, result["title_cap"], love)
 
         caption = (
-            f"<blockquote>{result['title']}</blockquote>\n"
-            f"<blockquote>✧══════•❁♡︎❁•══════✧\n• | **{name1.title()} ❣️ • | {name2.title()}**\n✧══════•❁♡︎❁•══════✧\n</blockquote>"
+            f"<blockquote>          {result['title']}</blockquote>\n"
+            f"<blockquote>✧══════•❁♡︎❁•══════✧\n**{name1.title()} ❣️ {name2.title()}**\n✧══════•❁♡︎❁•══════✧\n</blockquote>"
             f"<blockquote>💞 𝐂ᴏᴍᴘᴀᴛɪʙɪʟɪᴛʏ: **{love}%**\n       {emoji_bar(love)}\n"
             f"💓 𝐄ᴍᴏᴛɪᴏɴᴀʟ𝐁ᴏɴᴅ: **{emotion}%**\n       {emoji_bar(emotion)}\n"
             f"🤞🏻 𝐅ᴜɴ𝐋ᴇᴠᴇʟ: **{fun}%**\n       {emoji_bar(fun)}\n"
@@ -230,8 +230,8 @@ async def flames_command(client, message):
 
         buttons = InlineKeyboardMarkup([
             [
-                #InlineKeyboardButton("🔻 ᴛʀʏ ᴀɢᴀɪɴ 🔻", callback_data="flames_retry"),
-                InlineKeyboardButton("🔻 sʜᴀʀᴇ 🔻", switch_inline_query="flames love test"),
+                InlineKeyboardButton("🔻 ᴛʀʏ ᴀɢᴀɪɴ 🔻", callback_data="flames_retry"),
+                #InlineKeyboardButton("🔻 sʜᴀʀᴇ 🔻", switch_inline_query="flames love test"),
             #],
             #[
                 InlineKeyboardButton("🔻 ᴠɪᴇᴡ ᴀʟʟ 🔻", callback_data="flames_list")
