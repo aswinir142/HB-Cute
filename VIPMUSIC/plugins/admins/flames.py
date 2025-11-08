@@ -230,7 +230,7 @@ async def flames_command(client, message):
 
         buttons = InlineKeyboardMarkup([
             [
-                InlineKeyboardButton("🔻ᴛʀʏ ᴀɢᴀɪɴ🔻", callback_data="flames_retry"),
+                #InlineKeyboardButton("🔻ᴛʀʏ ᴀɢᴀɪɴ🔻", callback_data="flames_retry"),
                 #InlineKeyboardButton("🔻 sʜᴀʀᴇ 🔻", switch_inline_query="flames love test"),
             #],
             #[
