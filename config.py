@@ -157,7 +157,8 @@ MENTION_USERNAMES = [
     "/help",
     "Ghost Bat",
     "Shasha",
-    "bat here"
+    "bat here",
+    "@"
 ]
 START_REACTIONS = [
     "❤️", "💖", "💘", "💞", "💓", "🎧", "✨", "🔥", "💫",
