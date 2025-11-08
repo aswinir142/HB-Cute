@@ -166,6 +166,11 @@ async def flames_command(client, message):
         name1, name2 = args[1], args[2]
         result_letter = flames_result(name1, name2)
         result = RESULTS[result_letter]
+        love = random.randint(60, 100)
+        emotion = random.randint(40, 100)
+        fun = random.randint(30, 100)
+        communication = random.randint(50, 100)
+        trust = random.randint(40, 100)
 
         bg = await get_random_image(result_letter)
         percent = random.randint(10, 100)
