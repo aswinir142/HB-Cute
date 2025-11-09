@@ -1,46 +1,41 @@
+# VIPMUSIC/utils/database/reactiondb.py
+
 import json
 import os
+from typing import Dict
 
-# Local JSON file for storing chat reaction states
-DB_PATH = os.path.join(os.getcwd(), "reaction_state.json")
+# JSON file path
+REACTION_FILE = os.path.join(os.path.dirname(__file__), "reaction_status.json")
+
+# Ensure file exists
+if not os.path.exists(REACTION_FILE):
+    with open(REACTION_FILE, "w") as f:
+        json.dump({}, f)
 
 
-def _load():
-    """Load the JSON data from file."""
-    if not os.path.exists(DB_PATH):
-        return {}
+def load_reaction_data() -> Dict[str, bool]:
+    """Load all chat reaction statuses from JSON."""
     try:
-        with open(DB_PATH, "r", encoding="utf-8") as f:
+        with open(REACTION_FILE, "r") as f:
             return json.load(f)
     except Exception:
         return {}
 
 
-def _save(data: dict):
-    """Save the JSON data to file."""
-    try:
-        with open(DB_PATH, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=4)
-    except Exception as e:
-        print(f"[ReactionDB] Failed to save data: {e}")
+def save_reaction_data(data: Dict[str, bool]):
+    """Save all chat reaction statuses to JSON."""
+    with open(REACTION_FILE, "w") as f:
+        json.dump(data, f, indent=4)
 
 
 def get_reaction_status(chat_id: int) -> bool:
-    """
-    Get the reaction status for a chat.
-    Returns True if reactions are ON, False otherwise.
-    Default is True.
-    """
-    data = _load()
-    return data.get(str(chat_id), True)
+    """Return True if reactions are enabled for this chat."""
+    data = load_reaction_data()
+    return str(chat_id) in data and data[str(chat_id)]
 
 
 def set_reaction_status(chat_id: int, status: bool):
-    """
-    Set the reaction status for a chat.
-    True = Reactions ON, False = Reactions OFF
-    """
-    data = _load()
+    """Enable or disable reaction for this chat."""
+    data = load_reaction_data()
     data[str(chat_id)] = status
-    _save(data)
-    print(f"[ReactionDB] Chat {chat_id} -> {'ENABLED' if status else 'DISABLED'}")
+    save_reaction_data(data)
