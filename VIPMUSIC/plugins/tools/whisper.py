@@ -6,6 +6,8 @@ from pyrogram.types import (
     InlineKeyboardMarkup, InlineKeyboardButton
 )
 
+print("[whisper] whisper")
+
 whisper_db = {}
 
 switch_btn = InlineKeyboardMarkup([[InlineKeyboardButton("●ᥫᩣ Sᴛᴀʀᴛ Wʜɪsᴘᴇʀ", switch_inline_query_current_chat="")]])
