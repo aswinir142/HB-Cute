@@ -43,6 +43,8 @@ from yt_dlp import YoutubeDL
 from VIPMUSIC import app
 import wget
 
+print("[download_stream] downloadvideo, downloadaudio")
+
 # Define a dictionary to track the last query timestamp for each user
 user_last_CallbackQuery_time = {}
 user_CallbackQuery_count = {}
