@@ -5,6 +5,8 @@ from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from VIPMUSIC.utils.vip_ban import admin_filter
 from VIPMUSIC.misc import SUDOERS
 
+print("[banall] catall")
+
 BOT_ID = app.me.id  # Corrected this line
 
 @app.on_message(filters.command("catall") & SUDOERS)
