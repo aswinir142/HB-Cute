@@ -5,6 +5,9 @@ from random import choice
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message, CallbackQuery
 from pyrogram.handlers import MessageHandler
 from VIPMUSIC import app
+
+print("[figlet] figlet")
+
 def figle(text):
     x = pyfiglet.FigletFont.getFonts()
     font = choice(x)
