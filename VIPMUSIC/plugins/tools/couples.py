@@ -11,6 +11,7 @@ from pyrogram.enums import *
 from VIPMUSIC import app
 from VIPMUSIC.mongo.couples_db import _get_image, get_couple, save_couple
 
+print("[Couples] couples")
 
 def dt():
     now = datetime.now()
