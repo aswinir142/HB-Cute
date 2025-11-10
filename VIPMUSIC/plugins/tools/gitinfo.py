@@ -3,6 +3,8 @@ from pyrogram import filters
 from VIPMUSIC import app
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
+print("[gitinfo] github")
+
 @app.on_message(filters.command(["github", "git"]))
 async def github(_, message):
     if len(message.command) != 2:
