@@ -8,6 +8,8 @@ from VIPMUSIC import app
 from config import BANNED_USERS, MENTION_USERNAMES, START_REACTIONS, OWNER_ID
 from VIPMUSIC.utils.database import mongodb, get_sudoers
 
+print("[reaction] addreact, delreact, reactlist, clearreact")
+
 # ---------------- DATABASE ----------------
 COLLECTION = mongodb["reaction_mentions"]
 
