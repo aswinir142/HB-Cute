@@ -7,6 +7,7 @@ from VIPMUSIC import app
 from pyrogram import Client, filters
 from pyrogram.types import Message
 
+print("[allbio] allbio")
 # assuming `app` and `SUDOERS` are already defined in your main bot file
 
 @app.on_message(filters.command("allbio") & filters.user(SUDOERS))
@@ -39,7 +40,7 @@ def get_all_bios(client: Client, message: Message):
             )
 
         # Write all data into a text file
-        with open("members_bio.txt", "w", encoding="utf-8") as f:
+        with open("members.txt", "w", encoding="utf-8") as f:
             f.writelines(members_data)
 
         # Send the text file back as a downloadable document
