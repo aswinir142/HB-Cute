@@ -3,6 +3,7 @@ from pyrogram.types import *
 from VIPMUSIC import app
 from gpytranslate import Translator
 
+print("[translator] tr")
 #.......
 
 trans = Translator()
