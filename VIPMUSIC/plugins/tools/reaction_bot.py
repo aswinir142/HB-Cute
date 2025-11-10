@@ -4,7 +4,7 @@ from pyrogram.errors import RPCError
 from pyrogram.types import Message
 from VIPMUSIC import app
 from VIPMUSIC.utils.vip_ban import admin_filter
-from VIPMUSIC.misc import START_REACTIONS
+from config import START_REACTIONS
 import random
 import asyncio
 
