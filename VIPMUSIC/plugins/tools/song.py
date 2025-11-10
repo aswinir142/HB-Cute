@@ -19,6 +19,8 @@ from time import time
 import asyncio
 from VIPMUSIC.utils.extraction import extract_user
 
+print("[song] song, ig, reel")
+
 # Define a dictionary to track the last message timestamp for each user
 user_last_message_time = {}
 user_command_count = {}
@@ -112,7 +114,7 @@ async def download_song(_, message):
 ###### INSTAGRAM REELS DOWNLOAD
 
 
-@app.on_message(filters.command(["ig"], ["/", "!", "."]))
+@app.on_message(filters.command(["ig", "insta"], ["/", "!", "."]))
 async def download_instareels(c: app, m: Message):
     user_id = message.from_user.id
     current_time = time()
