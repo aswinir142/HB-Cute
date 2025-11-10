@@ -8,7 +8,7 @@ from VIPMUSIC.utils.decorators import ActualAdminCB, language, languageCB
 from config import BANNED_USERS
 from strings import get_string, languages_present
 
-print("[language] setlanguage")
+print("[language] setlang")
 
 def lanuages_keyboard(_):
     keyboard = InlineKeyboard(row_width=2)
