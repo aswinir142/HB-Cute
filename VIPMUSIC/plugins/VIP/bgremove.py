@@ -5,6 +5,8 @@ from aiohttp import ContentTypeError
 from VIPMUSIC import app as app
 from pyrogram import filters
 
+print("[bgremove] rmbg")
+
 API_KEY = "23nfCEipDijgVv6SH14oktJe"
 
 def check_filename(filroid):
