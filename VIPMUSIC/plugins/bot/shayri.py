@@ -1,4 +1,4 @@
-
+from typing import Union
 from pyrogram import Client, filters
 import requests
 import random
