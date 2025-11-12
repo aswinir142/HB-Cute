@@ -1,4 +1,4 @@
-from strings import get_string
+from VIPMUSIC.utils.decorators.language import language
 from pyrogram import Client, filters
 import requests
 import random
