@@ -78,9 +78,10 @@ async def set_reaction_status(chat_id: int, status: bool):
     except Exception as e:
         print(f"[Reaction Bot] Error setting reaction status: {e}")
 
-# ---------------- /reactionon ----------------
+# ---------------- COMMAND HANDLERS ----------------
 @app.on_message(filters.command("reactionon") & ~BANNED_USERS)
 async def reaction_on_command(client, message: Message):
+    print(f"[DEBUG] /reactionon command received from {message.from_user.id} in chat {message.chat.id}")
     if not await is_admin_or_sudo(client, message):
         return await message.reply_text("⚠️ Only admins or sudo users can enable reactions.")
 
@@ -88,9 +89,9 @@ async def reaction_on_command(client, message: Message):
     await set_reaction_status(chat_id, True)
     await message.reply_text("✅ **Reaction mode enabled!**\n\nI will now respond to messages with emoji replies.")
 
-# ---------------- /reactionoff ----------------
 @app.on_message(filters.command("reactionoff") & ~BANNED_USERS)
 async def reaction_off_command(client, message: Message):
+    print(f"[DEBUG] /reactionoff command received from {message.from_user.id} in chat {message.chat.id}")
     if not await is_admin_or_sudo(client, message):
         return await message.reply_text("⚠️ Only admins or sudo users can disable reactions.")
 
@@ -98,9 +99,9 @@ async def reaction_off_command(client, message: Message):
     await set_reaction_status(chat_id, False)
     await message.reply_text("❌ **Reaction mode disabled!**\n\nI will stop responding to messages with emoji replies.")
 
-# ---------------- /reaction ----------------
 @app.on_message(filters.command("reaction") & ~BANNED_USERS)
 async def reaction_command(client, message: Message):
+    print(f"[DEBUG] /reaction command received from {message.from_user.id} in chat {message.chat.id}")
     if not await is_admin_or_sudo(client, message):
         return await message.reply_text("⚠️ Only admins or sudo users can manage reactions.")
 
@@ -159,17 +160,17 @@ async def reaction_callback_handler(client, callback_query):
     
     await callback_query.answer()
 
-# ---------------- ALTERNATIVE: REPLY WITH EMOJI MESSAGES ----------------
+# ---------------- MESSAGE HANDLER (NON-COMMAND MESSAGES) ----------------
 @app.on_message(
-    (filters.text | filters.caption) & 
+    filters.text & 
     ~BANNED_USERS & 
-    ~filters.command(["reaction", "reactionon", "reactionoff", "react"]) &
-    filters.group
+    filters.group &
+    ~filters.command(["reaction", "reactionon", "reactionoff", "react", "start", "help"])
 )
-async def reply_with_emoji(client, message: Message):
+async def handle_group_messages(client, message: Message):
     try:
-        # Skip replies to avoid loops
-        if message.reply_to_message:
+        # Skip if message is empty or reply
+        if not message.text or message.reply_to_message:
             return
 
         chat_id = message.chat.id
@@ -189,9 +190,9 @@ async def reply_with_emoji(client, message: Message):
                 print(f"[Reaction Bot] Error replying with emoji: {e}")
 
     except Exception as e:
-        print(f"[reply_with_emoji] error: {e}")
+        print(f"[handle_group_messages] error: {e}")
 
-# ---------------- ALTERNATIVE 2: ADD EMOJI TO MESSAGE TEXT ----------------
+# ---------------- /react COMMAND ----------------
 @app.on_message(filters.command("react") & ~BANNED_USERS)
 async def add_emoji_command(client, message: Message):
     """Add random emoji to a replied message"""
@@ -199,12 +200,9 @@ async def add_emoji_command(client, message: Message):
         return await message.reply_text("❌ Please reply to a message to add an emoji!")
     
     emoji = random.choice(SAFE_REACTIONS)
-    original_text = message.reply_to_message.text or message.reply_to_message.caption or ""
-    
-    new_text = f"{original_text} {emoji}"
     
     try:
-        await message.reply_to_message.reply(new_text)
+        await message.reply_to_message.reply(emoji)
         await message.delete()
     except Exception as e:
         await message.reply_text(f"❌ Error: {e}")
