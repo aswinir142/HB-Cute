@@ -160,17 +160,14 @@ async def reaction_callback_handler(client, callback_query):
     await callback_query.answer()
 
 # ---------------- ALTERNATIVE: REPLY WITH EMOJI MESSAGES ----------------
-def is_command(text: str) -> bool:
-    """Check if message is a command"""
-    return text and text.startswith("/")
-
-@app.on_message((filters.text | filters.caption) & ~BANNED_USERS)
+@app.on_message(
+    (filters.text | filters.caption) & 
+    ~BANNED_USERS & 
+    ~filters.command(["reaction", "reactionon", "reactionoff", "react"]) &
+    filters.group
+)
 async def reply_with_emoji(client, message: Message):
     try:
-        # Skip bot commands
-        if message.text and is_command(message.text):
-            return
-        
         # Skip replies to avoid loops
         if message.reply_to_message:
             return
@@ -180,10 +177,6 @@ async def reply_with_emoji(client, message: Message):
         # Check if reactions are enabled for this chat
         reaction_status = await get_reaction_status(chat_id)
         if not reaction_status:
-            return
-
-        # Check if it's a group or supergroup
-        if message.chat.type not in (ChatType.GROUP, ChatType.SUPERGROUP):
             return
 
         # Random chance to reply with emoji (20% chance)
