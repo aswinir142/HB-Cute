@@ -246,5 +246,6 @@ async def check_bio(client: Client, message):
 
 
 # =================== Run Bot ===================
-if __name__ == "__main__":
+def biolink():
+    """Start the BioLink bot instance."""
     app.run()
