@@ -1,6 +1,6 @@
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-from config
+import config
 
 
 def botplaylist_markup(_):
