@@ -1,4 +1,4 @@
-
+from VIPMUSIC.utils.decorators.language import language
 from pyrogram import Client, filters
 import requests
 import random
@@ -60,21 +60,17 @@ SHAYRI = [ "**𝑵𝒆𝒆 𝑷𝒂𝒓𝒌𝒖𝒎 𝑷𝒐𝒅𝒉𝒖 😍�
 SHAYRI_COMMAND = ["crush"]
 
 @app.on_message(
-    filters.command(SHAYRI_COMMAND) & filters.group
-)
-async def shayri_group(client: Client, message: Message):
+    filters.command(SHAYRI_COMMAND) & filters.group)
+@language
+async def shayri_group(client: Client, message: Message, _):
     await message.reply_text(
         f"<blockquote>{random.choice(SHAYRI)}</blockquote>",
         #parse_mode="markdown",
         reply_markup=InlineKeyboardMarkup(
             [
                 [
-                    InlineKeyboardButton(
-                        "💕 𝐍𖽞𖾓𖾟𖽙𖾖ᴋ 🦋", url="https://t.me/HeartBeat_Offi"
-                    ),
-                    InlineKeyboardButton(
-                        "💕 𝐎𖾟𖽡𖽞𖾖 🦋", url="https://t.me/HeartBeat_Fam"
-                    ),
+                    InlineKeyboardButton(text=_["CHT"], url="https://t.me/{SUPPORT_CHAT})"),
+                    InlineKeyboardButton(text=_["NET"], url="https://t.me/HeartBeat_Fam"),
                 ]
             ]
         ),
@@ -82,21 +78,17 @@ async def shayri_group(client: Client, message: Message):
 
 
 @app.on_message(
-    filters.command(SHAYRI_COMMAND) & filters.private
-)
-async def shayri_private(client: Client, message: Message):
+    filters.command(SHAYRI_COMMAND) & filters.private)
+@language
+async def shayri_private(client: Client, message: Message, _):
     await message.reply_text(
         f"<blockquote>{random.choice(SHAYRI)}</blockquote>",
         #parse_mode="markdown",
         reply_markup=InlineKeyboardMarkup(
             [
                 [
-                    InlineKeyboardButton(
-                        "💕 𝐍𖽞𖾓𖾟𖽙𖾖ᴋ 🦋", url="https://t.me/HeartBeat_Offi"
-                    ),
-                    InlineKeyboardButton(
-                        "💕 𝐎𖾟𖽡𖽞𖾖 🦋", url="https://t.me/HeartBeat_Muzic"
-                    ),
+                    InlineKeyboardButton(text=_["CHT"], url="https://t.me/{SUPPORT_CHAT})"),
+                    InlineKeyboardButton(text=_["NET"], url="https://t.me/HeartBeat_Fam"),
                 ]
             ]
         ),
