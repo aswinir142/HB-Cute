@@ -302,8 +302,8 @@ async def shayri_group(client: Client, message: Message, _):
         reply_markup=InlineKeyboardMarkup(
             [
                 [
-                    InlineKeyboardButton(text=_["CHT"], url="https://t.me/{SUPPORT_CHAT})"),
-                    InlineKeyboardButton(text=_["NET"], url="https://t.me/{UPDATE_CHANNEL})"),
+                    InlineKeyboardButton(text=_["CHT"], url=config.SUPPORT_CHAT),
+                    InlineKeyboardButton(text=_["NET"], url=config.SUPPORT_CHANNEL),
                 ]
             ]
         ),
@@ -320,8 +320,8 @@ async def shayri_private(client: Client, message: Message, _):
         reply_markup=InlineKeyboardMarkup(
             [
                 [
-                    InlineKeyboardButton(text=_["CHT"], url="https://t.me/{SUPPORT_CHAT})"),
-                    InlineKeyboardButton(text=_["NET"], url="https://t.me/{UPDATE_CHANNEL})"),
+                    InlineKeyboardButton(text=_["CHT"], url=config.SUPPORT_CHAT),
+                    InlineKeyboardButton(text=_["NET"], url=config.SUPPORT_CHANNEL),
                 ]
             ]
         ),
