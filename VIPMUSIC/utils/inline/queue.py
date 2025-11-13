@@ -74,7 +74,7 @@ def aq_markup(_, chat_id):
         ],
         [
             InlineKeyboardButton(
-                text=_["S_B_6"], url=f"https://t.me/{SUPPORT_CHAT}"),
+                text=_["S_B_6"], url=config.SUPPORT_CHAT),
                 
             ),
         ],
@@ -102,7 +102,7 @@ def queuemarkup(_, vidid, chat_id):
         ],
         [
             InlineKeyboardButton(
-                text=_["S_B_6"], url=f"https://t.me/{SUPPORT_CHAT}"),
+                text=_["S_B_6"], url=config.SUPPORT_CHAT),
                 
             ),
         ],
