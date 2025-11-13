@@ -8,7 +8,7 @@ from VIPMUSIC.utils.database import add_sudo, remove_sudo
 from VIPMUSIC.utils.decorators.language import language
 from VIPMUSIC.utils.extraction import extract_user
 from VIPMUSIC.utils.inline import close_markup
-from config import BANNED_USERS, OWNER_ID, START_IMG
+from config import BANNED_USERS, OWNER_ID, START_IMG_URL
 
 
 
@@ -47,14 +47,14 @@ async def userdel(client, message: Message, _):
 
 
 
-#photo_url = "https://graph.org/file/ffdb1be822436121cf5fd.png"
+#START_IMG_URL = "https://graph.org/file/ffdb1be822436121cf5fd.png"
 
 @app.on_message(filters.command(["cgsudo"], prefixes=["/", "!", "%", ",", "", ".", "@", "#"]) & ~BANNED_USERS)
 @language
 async def sudoers_list(client, message: Message, _):
     keyboard = [[InlineKeyboardButton(text=_["OWN"], callback_data="check_sudo_list")]]
     reply_markups = InlineKeyboardMarkup(keyboard)
-    await message.reply_photo(photo=START_IMG, caption="**» ᴄʜᴇᴄᴋ sᴜᴅᴏ ʟɪsᴛ ʙʏ ɢɪᴠᴇɴ ʙᴇʟᴏᴡ ʙᴜᴛᴛᴏɴ.**\n\n**» ɴᴏᴛᴇ:**  ᴏɴʟʏ sᴜᴅᴏ ᴜsᴇʀs ᴄᴀɴ ᴠɪᴇᴡ. ", reply_markup=reply_markups)
+    await message.reply_photo(photo=START_IMG_URL, caption="**» ᴄʜᴇᴄᴋ sᴜᴅᴏ ʟɪsᴛ ʙʏ ɢɪᴠᴇɴ ʙᴇʟᴏᴡ ʙᴜᴛᴛᴏɴ.**\n\n**» ɴᴏᴛᴇ:**  ᴏɴʟʏ sᴜᴅᴏ ᴜsᴇʀs ᴄᴀɴ ᴠɪᴇᴡ. ", reply_markup=reply_markups)
 
 @app.on_callback_query(filters.regex("^check_sudo_list$"))
 @language
