@@ -28,7 +28,7 @@ def private_panel(_):
         ],
         [
             InlineKeyboardButton(text=_["CHT"], url=config.SUPPORT_CHAT),
-            InlineKeyboardButton(text=_["DEV"], url=config.OWNER),
+            InlineKeyboardButton(text=_["DEV"], url=config.OWNER_USERNAME),
             InlineKeyboardButton(text=_["NET"], url=config.SUPPORT_CHANNEL),
         ],
         [
