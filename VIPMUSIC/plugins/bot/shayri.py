@@ -6,6 +6,7 @@ import os
 import re
 import asyncio
 import time
+from config
 from VIPMUSIC import app
 from time import time
 import asyncio
@@ -297,12 +298,12 @@ SHAYRI_COMMAND = ["pickupline", "uruttu", "urutu", "pickup"]
 async def shayri_group(client: Client, message: Message, _):
     await message.reply_text(
         f"<blockquote>{random.choice(SHAYRI)}</blockquote>",
-        #parse_mode="html",
+        #parse_mode="markdown",
         reply_markup=InlineKeyboardMarkup(
             [
                 [
-                    InlineKeyboardButton(text=_["NET"], url="https://t.me/HeartBeat_Offi"),
-                    InlineKeyboardButton(text=_["CHT"], url="https://t.me/HeartBeat_Fam"),
+                    InlineKeyboardButton(text=_["CHT"], url="https://t.me/{SUPPORT_CHAT})"),
+                    InlineKeyboardButton(text=_["NET"], url="https://t.me/{UPDATE_CHANNEL})"),
                 ]
             ]
         ),
@@ -315,12 +316,12 @@ async def shayri_group(client: Client, message: Message, _):
 async def shayri_private(client: Client, message: Message, _):
     await message.reply_text(
         f"<blockquote>{random.choice(SHAYRI)}</blockquote>",
-        #parse_mode="html",
+        #parse_mode="markdown",
         reply_markup=InlineKeyboardMarkup(
             [
                 [
-                    InlineKeyboardButton(text=_["NET"], url="https://t.me/HeartBeat_Offi"),
-                    InlineKeyboardButton(text=_["CHT"], url="https://t.me/HeartBeat_Fam"),
+                    InlineKeyboardButton(text=_["CHT"], url="https://t.me/{SUPPORT_CHAT})"),
+                    InlineKeyboardButton(text=_["NET"], url="https://t.me/{UPDATE_CHANNEL})"),
                 ]
             ]
         ),
