@@ -8,7 +8,7 @@ from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ChatPermi
 
 from autorestart import autorestart
 
-from helper.utils import (
+from VIPMUSIC.utils.databases.biolinkdb import (
     is_admin,
     get_config, update_config,
     increment_warning, reset_warnings,
