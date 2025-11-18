@@ -1,5 +1,3 @@
-# VIPMUSIC/plugins/admins/reaction.py
-
 import asyncio
 import random
 from typing import Set, Dict, Optional, Tuple
