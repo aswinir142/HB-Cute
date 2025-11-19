@@ -285,7 +285,7 @@ async def learn_reply_private(client, message):
 
 # -------------------- MAIN CHATBOT HANDLER -------------------- #
 # IMPORTANT: group=99 fixes all command issues
-@app.on_message(filters.incoming, group=99)
+@app.on_message(filters.incoming & ~filters.me, group=99)
 async def chatbot_handler(client, message: Message):
     if message.edit_date:
         return
