@@ -1,32 +1,30 @@
+# ================================
+#      FINAL REACTION BOT
+# ================================
 import asyncio
 import random
-from typing import Set, Tuple, Optional, Dict
+from typing import Set, Dict, Optional, Tuple
+
 from pyrogram import filters
-from pyrogram.types import (
-    Message,
-    InlineKeyboardMarkup,
-    InlineKeyboardButton,
-    CallbackQuery
-)
-from pyrogram.enums import ChatMemberStatus
+from pyrogram.types import Message, CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
+from pyrogram.enums import ChatType, ChatMemberStatus
 
 from VIPMUSIC import app
-from config import BANNED_USERS, START_REACTIONS, OWNER_ID
 from VIPMUSIC.utils.database import mongodb, get_sudoers
+from config import BANNED_USERS, OWNER_ID, START_REACTIONS
 
-print("[reaction] reaction")
+print("[reaction_bot] loaded")
 
-# ---------------- DATABASE ----------------
-COLLECTION = mongodb["reaction_mentions"]
-SETTINGS = mongodb["reaction_settings"]  # reaction ON/OFF switch storage
+# ---------------- DB ----------------
+MENTION_DB = mongodb["reaction_mentions"]
+SWITCH_DB = mongodb["reaction_settings"]  # ON/OFF toggle
 
 # ---------------- STATE ----------------
-REACTION_ENABLED = True  # default ON #move to config
+REACTION_ENABLED = True
 
 # ---------------- CACHE ----------------
 custom_mentions: Set[str] = set()
 
-# ---------------- VALID REACTION EMOJIS ----------------
 VALID_REACTIONS = {
     "❤️", "💖", "💘", "💞", "💓", "✨", "🔥", "💫",
     "💥", "🌸", "😍", "🥰", "💎", "🌙", "🌹", "😂",
@@ -37,194 +35,187 @@ SAFE_REACTIONS = [e for e in START_REACTIONS if e in VALID_REACTIONS]
 if not SAFE_REACTIONS:
     SAFE_REACTIONS = list(VALID_REACTIONS)
 
-# ---------------- PER-CHAT NON-REPEATING EMOJI ROTATION ----------------
 chat_used_reactions: Dict[int, Set[str]] = {}
+
 
 def next_emoji(chat_id: int) -> str:
     if chat_id not in chat_used_reactions:
         chat_used_reactions[chat_id] = set()
 
     used = chat_used_reactions[chat_id]
-
     if len(used) >= len(SAFE_REACTIONS):
         used.clear()
 
-    remaining = [e for e in SAFE_REACTIONS if e not in used]
+    remaining = [x for x in SAFE_REACTIONS if x not in used]
     emoji = random.choice(remaining)
+
     used.add(emoji)
     chat_used_reactions[chat_id] = used
     return emoji
 
-# ---------------- LOAD CUSTOM MENTIONS ----------------
-async def load_custom_mentions():
-    try:
-        docs = await COLLECTION.find().to_list(None)
-        for doc in docs:
-            name = doc.get("name")
-            if name:
-                custom_mentions.add(str(name).lower().lstrip("@"))
-        print(f"[Reaction Manager] Loaded {len(custom_mentions)} triggers.")
-    except Exception as e:
-        print(f"[Reaction Manager] DB load error: {e}")
 
-asyncio.get_event_loop().create_task(load_custom_mentions())
+# ---------------- LOAD TRIGGERS ----------------
+async def load_custom():
+    try:
+        docs = await MENTION_DB.find().to_list(length=None)
+        for d in docs:
+            name = d.get("name")
+            if name:
+                custom_mentions.add(name.lower().lstrip("@"))
+        print(f"[reaction_bot] triggers loaded: {len(custom_mentions)}")
+    except Exception as e:
+        print(f"[reaction_bot] load error: {e}")
+
+
+asyncio.get_event_loop().create_task(load_custom())
+
 
 # ---------------- LOAD SWITCH STATE ----------------
-async def load_reaction_state():
+async def load_switch():
     global REACTION_ENABLED
-    doc = await SETTINGS.find_one({"_id": "switch"})
+    doc = await SWITCH_DB.find_one({"_id": "switch"})
     if doc:
         REACTION_ENABLED = doc.get("enabled", True)
-    print(f"[Reaction Switch] Loaded => {REACTION_ENABLED}")
 
-asyncio.get_event_loop().create_task(load_reaction_state())
+    print(f"[reaction_bot] switch loaded => {REACTION_ENABLED}")
+
+
+asyncio.get_event_loop().create_task(load_switch())
+
 
 # ---------------- ADMIN CHECK ----------------
-async def is_admin_or_sudo(client, message: Message) -> Tuple[bool, Optional[str]]:
-    user_id = getattr(message.from_user, "id", None)
-    chat_id = message.chat.id
-    chat_type = str(getattr(message.chat, "type", "")).lower()
+async def is_admin(client, message: Message) -> Tuple[bool, Optional[str]]:
+    user = message.from_user
+    chat = message.chat
+
+    if not user or not chat:
+        return False, "invalid message"
+
+    user_id = user.id
+    cid = chat.id
 
     try:
-        sudoers = await get_sudoers()
-    except Exception:
-        sudoers = set()
+        sudo = await get_sudoers()
+    except:
+        sudo = set()
 
-    if user_id and (user_id == OWNER_ID or user_id in sudoers):
+    if user_id == OWNER_ID or user_id in sudo:
         return True, None
 
-    sender_chat_id = getattr(message.sender_chat, "id", None)
-    if sender_chat_id:
-        try:
-            chat = await client.get_chat(chat_id)
-            if getattr(chat, "linked_chat_id", None) == sender_chat_id:
-                return True, None
-        except Exception:
-            pass
-
-    if chat_type not in ("chattype.group", "chattype.supergroup", "chattype.channel"):
-        return False, f"chat_type={chat_type}"
-
-    if not user_id:
-        return False, "no from_user"
+    if chat.type not in (ChatType.GROUP, ChatType.SUPERGROUP, ChatType.CHANNEL):
+        return False, f"bad_chat_type={chat.type}"
 
     try:
-        member = await client.get_chat_member(chat_id, user_id)
-        if member.status in (ChatMemberStatus.OWNER, ChatMemberStatus.ADMINISTRATOR):
+        mem = await client.get_chat_member(cid, user_id)
+        if mem.status in (ChatMemberStatus.OWNER, ChatMemberStatus.ADMINISTRATOR):
             return True, None
-        else:
-            return False, f"user_status={member.status}"
+        return False, f"user_status={mem.status}"
     except Exception as e:
-        return False, f"error={e}"
+        return False, f"get_chat_member_error={e}"
 
-# ---------------- INLINE BUTTON PANEL (/reaction COMMAND) ----------------
+
+# ---------------- /reaction PANEL ----------------
 @app.on_message(filters.command("reaction") & ~BANNED_USERS)
-async def react_command(client, message: Message):
-    global REACTION_ENABLED
-
-    ok, debug = await is_admin_or_sudo(client, message)
+async def reaction_panel(client, message: Message):
+    ok, debug = await is_admin(client, message)
     if not ok:
-        return await message.reply_text(
-            "⚠️ Only admins/sudo users may control reaction system.\n\n"
-            f"Debug: {debug}"
-        )
+        return await message.reply_text(f"⚠️ Admin only.\nDebug: `{debug}`")
 
-    keyboard = InlineKeyboardMarkup(
+    kb = InlineKeyboardMarkup(
         [
             [
                 InlineKeyboardButton("✅ Enable", callback_data="react_on"),
-                InlineKeyboardButton("🛑 Disable", callback_data="react_off"),
+                InlineKeyboardButton("🛑 Disable", callback_data="react_off")
             ],
-            [
-                InlineKeyboardButton("🔍 Status", callback_data="react_status")
-            ]
+            [InlineKeyboardButton("🔍 Status", callback_data="react_status")]
         ]
     )
 
     await message.reply_text(
-        f"**Reaction System Control**\n\n"
-        f"Current state: {'🟢 ON' if REACTION_ENABLED else '🔴 OFF'}",
-        reply_markup=keyboard
+        f"**Reaction System**\n\nCurrent: {'🟢 ON' if REACTION_ENABLED else '🔴 OFF'}",
+        reply_markup=kb
     )
 
-# ---------------- CALLBACK HANDLER FOR BUTTONS ----------------
+
+# ---------------- CALLBACK ----------------
 @app.on_callback_query(filters.regex("^react_"))
-async def reaction_callback(client, query: CallbackQuery):
+async def cb_handler(client, cq: CallbackQuery):
     global REACTION_ENABLED
 
-    ok, debug = await is_admin_or_sudo(client, query.message)
+    ok, debug = await is_admin(client, cq.message)
     if not ok:
-        return await query.answer("Only admins/sudo users can do this.", show_alert=True)
+        return await cq.answer("Admins only.", show_alert=True)
 
-    action = query.data
-
-    if action == "react_on":
+    if cq.data == "react_on":
         REACTION_ENABLED = True
-        await SETTINGS.update_one({"_id": "switch"}, {"$set": {"enabled": True}}, upsert=True)
-        return await query.edit_message_text("✅ **Reactions Enabled**")
+        await SWITCH_DB.update_one({"_id": "switch"}, {"$set": {"enabled": True}}, upsert=True)
+        return await cq.edit_message_text("✅ **Reactions Enabled**")
 
-    elif action == "react_off":
+    if cq.data == "react_off":
         REACTION_ENABLED = False
-        await SETTINGS.update_one({"_id": "switch"}, {"$set": {"enabled": False}}, upsert=True)
-        return await query.edit_message_text("🛑 **Reactions Disabled**")
+        await SWITCH_DB.update_one({"_id": "switch"}, {"$set": {"enabled": False}}, upsert=True)
+        return await cq.edit_message_text("🛑 **Reactions Disabled**")
 
-    elif action == "react_status":
-        return await query.answer(
+    if cq.data == "react_status":
+        return await cq.answer(
             f"Reactions are {'ON' if REACTION_ENABLED else 'OFF'}",
             show_alert=True
         )
 
-# ---------------- AUTO REACTION SYSTEM ----------------
+
+# ---------------- AUTO REACT LISTENER ----------------
 @app.on_message(
     (filters.text | filters.caption)
-    & ~filters.regex(r"^/")
+    & ~filters.command(["reaction", "addreact", "delreact", "clearreact", "reactlist"])
     & ~BANNED_USERS
 )
-async def react_on_mentions(client, message: Message):
+async def auto_react(client, message: Message):
 
     if not REACTION_ENABLED:
         return
 
     try:
-        raw = message.text or message.caption or ""
+        raw = message.text or message.caption
         if not raw:
             return
 
         text = raw.lower()
         chat_id = message.chat.id
 
-        # Split text into words (supports @username and keywords)
+        # Ignore if starts like command
+        if text.startswith(("/", "!", ".", "$", "#")):
+            return
+
         words = set(text.replace("@", " @").split())
 
-        # Collect entities
         entities = (message.entities or []) + (message.caption_entities or [])
-        usernames, user_ids = set(), set()
+        mentioned_usernames = set()
+        mentioned_ids = set()
 
-        for ent in entities:
+        for e in entities:
             try:
-                src = message.text or message.caption or ""
-                if ent.type == "mention":
-                    username = src[ent.offset:ent.offset + ent.length]
-                    usernames.add(username.lstrip("@").lower())
-
-                elif ent.type == "text_mention" and ent.user:
-                    user_ids.add(ent.user.id)
-                    if ent.user.username:
-                        usernames.add(ent.user.username.lower())
+                src = raw
+                if e.type == "mention":
+                    uname = src[e.offset:e.offset + e.length]
+                    mentioned_usernames.add(uname.lstrip("@").lower())
+                elif e.type == "text_mention" and e.user:
+                    mentioned_ids.add(e.user.id)
+                    if e.user.username:
+                        mentioned_usernames.add(e.user.username.lower())
             except:
                 continue
 
-        # Username triggers
-        for uname in usernames:
-            if uname in custom_mentions:
+        # Match username triggers
+        for u in mentioned_usernames:
+            if u in custom_mentions:
                 return await message.react(next_emoji(chat_id))
 
-        # ID triggers
-        for uid in user_ids:
+        # Match ID triggers
+        for uid in mentioned_ids:
             if f"id:{uid}" in custom_mentions:
                 return await message.react(next_emoji(chat_id))
 
-        # Keyword triggers
+        # Match keyword triggers
         for trig in custom_mentions:
             if trig.startswith("id:"):
                 continue
@@ -232,4 +223,4 @@ async def react_on_mentions(client, message: Message):
                 return await message.react(next_emoji(chat_id))
 
     except Exception as e:
-        print(f"[react_on_mentions] error: {e}")
+        print(f"[reaction_bot error] {e}")
