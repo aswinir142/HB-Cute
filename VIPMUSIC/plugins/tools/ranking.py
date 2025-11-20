@@ -460,19 +460,19 @@ async def schedule_daily_poster():
 
 
 # -------------------------------------------------------------------
-# START SCHEDULER SAFELY (works with VIP custom client)
-# Use on_raw_update to ensure compatibility with clients that lack on_ready/on_event
+# START SCHEDULER SAFELY USING RAW UPDATE (PYROGRAM v2 + VIP CLIENT)
 # -------------------------------------------------------------------
 scheduler_started = False
 
-
 @app.on_raw_update()
-async def start_scheduler(_, __):
+async def start_scheduler_once(client, update, users, chats):
     global scheduler_started
     if scheduler_started:
         return
+
     scheduler_started = True
-    print("[ranking] Starting daily scheduler…")
+    print("[ranking] Scheduler started successfully")
+
     try:
         asyncio.create_task(schedule_daily_poster())
     except Exception as e:
