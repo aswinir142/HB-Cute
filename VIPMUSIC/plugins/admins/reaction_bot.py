@@ -175,8 +175,13 @@ async def reaction_callback(client, query: CallbackQuery):
         )
 
 # ---------------- AUTO REACTION SYSTEM ----------------
-@app.on_message((filters.text | filters.caption) & ~BANNED_USERS)
+@app.on_message(
+    (filters.text | filters.caption)
+    & ~filters.command([])
+    & ~BANNED_USERS
+)
 async def react_on_mentions(client, message: Message):
+
 
     if not REACTION_ENABLED:
         return
