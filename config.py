@@ -16,7 +16,7 @@ OWNER_USERNAME = getenv("OWNER_USERNAME","rajeshrakis")
 BOT_USERNAME = getenv("BOT_USERNAME", "thedakkidaikathaval_bot")
 BOT_NAME = getenv("BOT_NAME", "𝞖𝘌𝘈𝘙𝘛𝞑𝘌𝘈𝘛𝂬♡𝂬𝘿𝘙𝘜𝘎𝘡")
 ASSUSERNAME = getenv("ASSUSERNAME", "Apple_Ponnu")
-EVALOP = list(map(int, getenv("EVALOP", "1281282633").split()))
+EVALOP = list(map(int, getenv("EVALOP", "1281282633 8399160924 6773435708").split()))
 MONGO_DB_URI = getenv("MONGO_DB_URI","mongodb+srv://zewdatabase:ijoXgdmQ0NCyg9DO@zewgame.urb3i.mongodb.net/ontap?retryWrites=true&w=majority")
 GPT_API = getenv("GPT_API", "sk-proj-h6pk40oVRIxpXwrf3i50T3BlbkFJGVET8wX1yJtdi0zCWjDQ")
 PLAYHT_API = getenv("PLAYHT_API", "22e323f342024c0fb4ee430eeb9d0011")
@@ -37,23 +37,14 @@ LOG_CHANNEL = int(getenv("LOG_CHANNEL", "-1001735663878")) #fed_logs
 OWNER_ID = int(getenv("OWNER_ID", 1281282633))
 SUDOERS = getenv("SUDOERS", "1281282633 8399160924 6773435708").split()
 
-## Fill these variables if you're deploying on heroku.
-HEROKU_APP_NAME = getenv("HEROKU_APP_NAME")
-# Get it from http://dashboard.heroku.com/account
-HEROKU_API_KEY = getenv("HEROKU_API_KEY", "HRKU-fc1b7aea-b37a-4015-9877-8c3967ee97bc")
-
-UPSTREAM_REPO = getenv(
-    "UPSTREAM_REPO",
-    "https://github.com/GhosttBatt/HB-Cute",
-)
-UPSTREAM_BRANCH = getenv("UPSTREAM_BRANCH", "master")
-GIT_TOKEN = getenv(
-    "GIT_TOKEN", None
-)  # Fill this variable if your upstream repository is private
 
 SUPPORT_CHANNEL = getenv("SUPPORT_CHANNEL", "https://t.me/HeartBeat_Offi")
 SUPPORT_CHAT = getenv("SUPPORT_CHAT", "https://t.me/HeartBeat_Fam")
 MUST_JOIN = getenv("MUST_JOIN", "HeartBeat_Fam")
+
+#Ranking
+AUTOPOST_TIME_HOUR = 21
+AUTOPOST_TIME_MINUTE = 0
 
 # Maximum Limit Allowed for users to save playlists on bot's server
 SERVER_PLAYLIST_LIMIT = int(getenv("SERVER_PLAYLIST_LIMIT", "3000"))
@@ -95,6 +86,21 @@ CLEANMODE_DELETE_MINS = int(
     getenv("CLEANMODE_MINS", "5")
 )  # Remember to give value in Seconds
 
+## Fill these variables if you're deploying on heroku.
+HEROKU_APP_NAME = getenv("HEROKU_APP_NAME")
+# Get it from http://dashboard.heroku.com/account
+HEROKU_API_KEY = getenv("HEROKU_API_KEY", "HRKU-fc1b7aea-b37a-4015-9877-8c3967ee97bc")
+
+UPSTREAM_REPO = getenv(
+    "UPSTREAM_REPO",
+    "https://github.com/GhosttBatt/HB-Cute",
+)
+UPSTREAM_BRANCH = getenv("UPSTREAM_BRANCH", "master")
+GIT_TOKEN = getenv(
+    "GIT_TOKEN", None
+)  # Fill this variable if your upstream repository is private
+
+
 # Get your pyrogram v2 session from @VIP_STRING_ROBOT on Telegram
 STRING1 = getenv("STRING_SESSION2", "BQHEb5wACBKg_3_Rmk3Wlx48rb_-h9tODFzHehqD5HiYPagZ0OA4xNx_wowFcrtlZ9yIXpsVTNIsnJN1LlHcDcnymZiWNSTrHeA7FGVOKTkn-Aaq2ts1oYXzZvf2SfzDLd_8w9AQskX8OJ1aIzgO-tlCupA8AHg1a_os1esO072kaasdYUDgjsdmpbJlSYouyXW1Mb4e6h-c4lja6lfiAgC0J4yfU6sd7og2qrcFMRaajyLIXSQucpXLF6Fo6QbkBB9DjXys9C2YfZOisjZ5VgNkKaLSWicDyzl7TCSRP9oHgS-KJnJ0uhkP9zMnnvpIP0SabI0kAshBGZIH2wGHI72mK9Y7ngAAAAH2CAwvAA")
 STRING2 = getenv("STRING_SESSION2", None)
@@ -102,28 +108,6 @@ STRING3 = getenv("STRING_SESSION3", None)
 STRING4 = getenv("STRING_SESSION4", None)
 STRING5 = getenv("STRING_SESSION5", None)
 
-
-#    __      _______ _____    ___  __ _    _  _____ _____ _____   _____   ____ _______ 
-#    \ \    / /_   _|  __ \   |  \/  | |  | |/ ____|_   _/ ____|  |  _ \ / __ \__   __|
-#     \ \  / /  | | | |__) |  | \  / | |  | | (___   | || |       | |_) | |  | | | |   
-#      \ \/ /   | | |  ___/   | |\/| | |  | |\___ \  | || |       |  _ <| |  | | | |   
-#       \  /   _| |_| |       | |  | | |__| |____) |_| || |____   | |_) | |__| | | |   
-#        \/   |_____|_|       |_|  |_|\____/|_____/|_____\_____|  |____/ \____/  |_|   
-
-
-
-
-BANNED_USERS = filters.user()
-adminlist = {}
-lyrical = {}
-votemode = {}
-autoclean = []
-confirmer = {}
-chatstats = {}
-userstats = {}
-clean = {}
-
-autoclean = []
 
 YUMI_PICS = [
     "https://files.catbox.moe/mus8qn.jpg",
@@ -170,6 +154,26 @@ START_REACTIONS = [
     "❤️", "💖", "💘", "💞", "💓", "🎧", "✨", "🔥", "💫",
     "💥", "🎶", "🌸", "⚡", "😍", "🥰", "💎", "🌙", "🌹"
 ]
+
+#    __      _______ _____    ___  __ _    _  _____ _____ _____   _____   ____ _______ 
+#    \ \    / /_   _|  __ \   |  \/  | |  | |/ ____|_   _/ ____|  |  _ \ / __ \__   __|
+#     \ \  / /  | | | |__) |  | \  / | |  | | (___   | || |       | |_) | |  | | | |   
+#      \ \/ /   | | |  ___/   | |\/| | |  | |\___ \  | || |       |  _ <| |  | | | |   
+#       \  /   _| |_| |       | |  | | |__| |____) |_| || |____   | |_) | |__| | | |   
+#        \/   |_____|_|       |_|  |_|\____/|_____/|_____\_____|  |____/ \____/  |_|   
+
+BANNED_USERS = filters.user()
+adminlist = {}
+lyrical = {}
+votemode = {}
+autoclean = []
+confirmer = {}
+chatstats = {}
+userstats = {}
+clean = {}
+
+autoclean = []
+
 
 def time_to_seconds(time):
     stringt = str(time)
