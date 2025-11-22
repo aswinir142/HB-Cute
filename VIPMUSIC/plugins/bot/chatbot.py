@@ -7,7 +7,7 @@ from pyrogram.enums import ChatMemberStatus
 from pymongo import MongoClient
 from deep_translator import GoogleTranslator
 
-# ---------------- Application client ----------------
+# Application client
 try:
     from VIPMUSIC import app
 except:
@@ -16,7 +16,7 @@ except:
     except:
         raise RuntimeError("Pyrogram Client not found as 'app'")
 
-# ---------------- MongoDB ----------------
+# MongoDB
 try:
     from config import MONGO_URL
 except:
@@ -33,12 +33,13 @@ block_coll = db.get_collection("chatbot_blocklist")
 
 translator = GoogleTranslator()
 
-# ---------------- Runtime caches ----------------
+# Runtime caches & counters
 replies_cache = []
 blocklist = {}
 message_counts = {}
 global_blocked_patterns = []
 
+# Loaders
 def load_replies_cache():
     global replies_cache
     try:
@@ -56,7 +57,6 @@ def load_blocklist():
             try:
                 global_blocked_patterns.append(re.compile(p, re.IGNORECASE))
             except:
-                # fallback: treat as literal word
                 try:
                     global_blocked_patterns.append(re.compile(re.escape(p), re.IGNORECASE))
                 except:
@@ -66,7 +66,7 @@ def load_blocklist():
 
 load_replies_cache(); load_blocklist()
 
-# ---------------- small helpers ----------------
+# Small helpers
 def _photo_file_id(msg: Message) -> Optional[str]:
     try:
         photo = getattr(msg, "photo", None)
@@ -127,7 +127,7 @@ def chatbot_keyboard(is_enabled: bool):
     if is_enabled:
         return InlineKeyboardMarkup([[InlineKeyboardButton("🔴 Disable", callback_data="cb_disable")]])
     return InlineKeyboardMarkup([[InlineKeyboardButton("🟢 Enable", callback_data="cb_enable")]])
-# ---------------- /chatbot (group) ----------------
+# /chatbot (group)
 @app.on_message(filters.command("chatbot") & filters.group)
 async def chatbot_settings_group(client, message):
     chat_id = message.chat.id; user_id = message.from_user.id
@@ -135,10 +135,10 @@ async def chatbot_settings_group(client, message):
         return await message.reply_text("❌ Only admins can manage chatbot settings.")
     doc = status_coll.find_one({"chat_id": chat_id})
     enabled = not doc or doc.get("status") == "enabled"
-    txt = "**🤖 Chatbot Settings**\n\n" f"Current Status: **{'🟢 Enabled' if enabled else '🔴 Disabled'}**\n"
+    txt = "**🤖 Chatbot Settings**\n\n" + f"Current Status: **{'🟢 Enabled' if enabled else '🔴 Disabled'}**\n"
     await message.reply_text(txt, reply_markup=chatbot_keyboard(enabled))
 
-# ---------------- /chatbot (private) ----------------
+# /chatbot (private) - show status only (no auto-reply)
 @app.on_message(filters.command("chatbot") & filters.private)
 async def chatbot_settings_private(client, message):
     chat_id = message.chat.id
@@ -147,7 +147,7 @@ async def chatbot_settings_private(client, message):
     txt = f"**🤖 Chatbot (private)**\nStatus: **{'🟢 Enabled' if enabled else '🔴 Disabled'}**"
     await message.reply_text(txt, reply_markup=chatbot_keyboard(enabled))
 
-# ---------------- callback toggle ----------------
+# callback toggle
 @app.on_callback_query(filters.regex("^cb_(enable|disable)$"))
 async def chatbot_toggle_cb(client, cq: CallbackQuery):
     chat_id = cq.message.chat.id; uid = cq.from_user.id
@@ -161,20 +161,25 @@ async def chatbot_toggle_cb(client, cq: CallbackQuery):
         status_coll.update_one({"chat_id": chat_id}, {"$set": {"status": "disabled"}}, upsert=True)
         await cq.message.edit_text("**🤖 Chatbot Disabled!**", reply_markup=chatbot_keyboard(False)); await cq.answer("Disabled")
 
-# ---------------- /chatbot reset ----------------
-@app.on_message(filters.command("chatbot") & filters.regex("reset") & filters.group)
-async def chatbot_reset_group(client, message):
+# /chatbot reset (group only) - robust check
+@app.on_message(filters.command("chatbot") & filters.group)
+async def chatbot_reset_group_handler(client, message):
+    text = (message.text or "").lower()
+    if "reset" not in text: return
     if not await is_user_admin(client, message.chat.id, message.from_user.id):
         return await message.reply_text("❌ Only admins can do this.")
     chatai_coll.delete_many({}); replies_cache.clear()
     await message.reply_text("✅ All replies cleared.")
 
-@app.on_message(filters.command("chatbot") & filters.regex("reset") & filters.private)
-async def chatbot_reset_private(client, message):
+# /chatbot reset (private) - allow SUDO or owner usage
+@app.on_message(filters.command("chatbot") & filters.private)
+async def chatbot_reset_private_handler(client, message):
+    text = (message.text or "").lower()
+    if "reset" not in text: return
     chatai_coll.delete_many({}); replies_cache.clear()
     await message.reply_text("✅ All replies cleared.")
 
-# ---------------- /setlang ----------------
+# /setlang (group)
 @app.on_message(filters.command("setlang") & filters.group)
 async def setlang_group(client, message):
     if not await is_user_admin(client, message.chat.id, message.from_user.id):
@@ -185,6 +190,7 @@ async def setlang_group(client, message):
     lang_coll.update_one({"chat_id": message.chat.id}, {"$set": {"language": lang}}, upsert=True)
     await message.reply_text(f"✅ Language set to `{lang}`")
 
+# /setlang (private)
 @app.on_message(filters.command("setlang") & filters.private)
 async def setlang_private(client, message):
     parts = message.text.split(maxsplit=1)
@@ -193,44 +199,45 @@ async def setlang_private(client, message):
     lang_coll.update_one({"chat_id": message.chat.id}, {"$set": {"language": lang}}, upsert=True)
     await message.reply_text(f"✅ Language set to `{lang}`")
 
-# ---------------- Learn Replies ----------------
+# Learn replies - GROUP only (bot must be the replied-to user)
 @app.on_message(filters.reply & filters.group)
 async def learn_reply_group(client, message):
     if not message.reply_to_message: return
     bot = await client.get_me()
     if message.reply_to_message.from_user and message.reply_to_message.from_user.id == bot.id:
         await save_reply(message.reply_to_message, message)
-
-@app.on_message(filters.reply & filters.private)
-async def learn_reply_private(client, message):
-    if not message.reply_to_message: return
-    bot = await client.get_me()
-    if message.reply_to_message.from_user and message.reply_to_message.from_user.id == bot.id:
-        await save_reply(message.reply_to_message, message)
-# ---------------- SUDO / block commands (regex) ----------------
+# SUDO list
 from VIPMUSIC.misc import SUDOERS
 def is_sudo(uid): return uid in SUDOERS
 
+# /addblock <regex>
 @app.on_message(filters.command("addblock"))
 async def add_block_cmd(client, message):
     if not is_sudo(message.from_user.id): return await message.reply_text("❌ Only SUDO can use this command.")
     parts = message.text.split(None,1)
     if len(parts) < 2: return await message.reply_text("Usage: /addblock <regex-pattern>")
     pattern = parts[1].strip()
+    # validate pattern by trying to compile
+    try:
+        re.compile(pattern)
+    except re.error as e:
+        return await message.reply_text(f"❌ Invalid regex: `{e}`")
     block_coll.update_one({"pattern": pattern}, {"$set": {"pattern": pattern}}, upsert=True)
     load_blocklist()
     await message.reply_text(f"✅ Added regex block: `{pattern}`")
 
-@app.on_message(filters.command("rmblock"))
+# /rmblock and /removeblock aliases
+@app.on_message(filters.command("rmblock") | filters.command("removeblock"))
 async def rm_block_cmd(client, message):
     if not is_sudo(message.from_user.id): return await message.reply_text("❌ Only SUDO can use this command.")
     parts = message.text.split(None,1)
-    if len(parts) < 2: return await message.reply_text("Usage: /rmblock <regex-pattern>")
+    if len(parts) < 2: return await message.reply_text("Usage: /rmblock <regex-pattern> or /removeblock <regex-pattern>")
     pattern = parts[1].strip()
     block_coll.delete_one({"pattern": pattern})
     load_blocklist()
     await message.reply_text(f"🗑️ Removed regex block: `{pattern}`")
 
+# /listblock
 @app.on_message(filters.command("listblock"))
 async def list_block_cmd(client, message):
     if not is_sudo(message.from_user.id): return await message.reply_text("❌ Only SUDO can use this command.")
@@ -239,8 +246,22 @@ async def list_block_cmd(client, message):
     txt = "**🔐 Regex Blocklist:**\n\n" + "\n".join(f"• `{d.get('pattern')}`" for d in docs)
     await message.reply_text(txt)
 
-# ---------------- Main chatbot handler (spam guard etc) ----------------
-@app.on_message(filters.incoming & ~filters.me, group=99)
+# Utility: check if text is blocked by any pattern (safe fallback included)
+def bot_reply_blocked(text: str) -> bool:
+    if not text: return False
+    for pat in global_blocked_patterns:
+        try:
+            if pat.search(text):
+                return True
+        except Exception:
+            try:
+                if re.search(pat.pattern if hasattr(pat,'pattern') else str(pat), text, flags=re.IGNORECASE):
+                    return True
+            except:
+                pass
+    return False
+# Main chatbot handler - GROUPS only. This disables auto-replies in private chats.
+@app.on_message(filters.group & filters.incoming & ~filters.me, group=99)
 async def chatbot_handler(client, message: Message):
     if message.edit_date: return
     if not message.from_user: return
@@ -250,7 +271,6 @@ async def chatbot_handler(client, message: Message):
     now = datetime.utcnow()
 
     global blocklist, message_counts
-    # cleanup expired temporary blocks
     blocklist = {u: t for u, t in blocklist.items() if t > now}
 
     mc = message_counts.get(user_id)
@@ -275,7 +295,7 @@ async def chatbot_handler(client, message: Message):
     # allow commands like /play /start /help etc.
     if message.text and message.text.startswith("/"): return
 
-    # determine whether bot should respond:
+    # determine whether bot should respond
     should = False
     if message.reply_to_message:
         bot = await client.get_me()
@@ -290,89 +310,69 @@ async def chatbot_handler(client, message: Message):
         try: await message.reply_text("I don't understand. 🤔")
         except: pass
         return
-    # r exists: prepare reply and block-checks
+
     response = r.get("text", "")
     kind = r.get("kind", "text")
 
-    # ----------------- bot-reply-blocker util -----------------
-    def bot_reply_blocked(text: str) -> bool:
-        if not text: return False
-        for pat in global_blocked_patterns:
-            try:
-                if pat.search(text):
-                    return True
-            except:
-                # if pattern invalid for some reason, fallback literal match
-                try:
-                    if re.search(pat.pattern if hasattr(pat,'pattern') else str(pat), text, re.IGNORECASE):
-                        return True
-                except:
-                    pass
-        return False
-    # ---------------------------------------------------------
-
-    # If translation required, translate only after block-check on original text?
-    # We'll apply block-check on the final text that will be sent to ensure blocked words don't slip in after translation.
+    # language translation (apply and then block-check on final text to prevent slipping)
     lang = await get_chat_language(chat_id)
     final_text = response
     if kind == "text" and response and lang and lang != "nolang":
-        try:
-            final_text = translator.translate(response, target=lang)
-        except:
-            final_text = response
+        try: final_text = translator.translate(response, target=lang)
+        except: final_text = response
 
-    # For non-text kinds, some stored docs may have captions embedded or not.
-    # We'll attempt to check caption if exists in the record.
-    caption = r.get("caption") if isinstance(r, dict) else None
-    if caption and isinstance(caption, str):
+    # caption handling if present in record
+    caption = None
+    if isinstance(r, dict):
+        caption = r.get("caption") if isinstance(r.get("caption"), str) else None
+    final_caption = None
+    if caption:
         final_caption = caption
         if lang and lang != "nolang":
             try: final_caption = translator.translate(caption, target=lang)
             except: final_caption = caption
-    else:
-        final_caption = None
 
-    # ---------------- Block checks BEFORE sending ----------------
+    # Block checks BEFORE sending
     if kind == "text":
         if bot_reply_blocked(final_text):
-            return  # silently ignore — bot must not send blocked text
+            return
     else:
-        # For media/sticker/gif/audio/video check caption and also stored text if present
         if (final_caption and bot_reply_blocked(final_caption)) or (response and bot_reply_blocked(response)):
             return
-    # ---------------- Send reply safely ----------------
+
+    # Safe send
     try:
         if kind == "sticker":
-            # response is file_id
             if bot_reply_blocked(response): return
             await message.reply_sticker(response)
         elif kind == "photo":
             if final_caption and bot_reply_blocked(final_caption): return
-            # if response is file_id or url
-            await message.reply_photo(response, caption=final_caption) if final_caption else await message.reply_photo(response)
+            if final_caption: await message.reply_photo(response, caption=final_caption)
+            else: await message.reply_photo(response)
         elif kind == "video":
             if final_caption and bot_reply_blocked(final_caption): return
-            await message.reply_video(response, caption=final_caption) if final_caption else await message.reply_video(response)
+            if final_caption: await message.reply_video(response, caption=final_caption)
+            else: await message.reply_video(response)
         elif kind == "audio":
             if final_caption and bot_reply_blocked(final_caption): return
-            await message.reply_audio(response, caption=final_caption) if final_caption else await message.reply_audio(response)
+            if final_caption: await message.reply_audio(response, caption=final_caption)
+            else: await message.reply_audio(response)
         elif kind == "gif":
             if final_caption and bot_reply_blocked(final_caption): return
-            await message.reply_animation(response, caption=final_caption) if final_caption else await message.reply_animation(response)
+            if final_caption: await message.reply_animation(response, caption=final_caption)
+            else: await message.reply_animation(response)
         elif kind == "voice":
             if bot_reply_blocked(response): return
             await message.reply_voice(response)
         else:
-            # text or fallback
             if bot_reply_blocked(final_text): return
             await message.reply_text(final_text or "I don't understand.")
     except Exception:
-        # fallback - try to send as text if possible and allowed
         try:
             if kind != "text" and response and not bot_reply_blocked(response):
                 await message.reply_text(response)
             else:
-                # last attempt: generic fallback message (does not contain user content)
                 await message.reply_text("I don't understand.")
         except:
             pass
+
