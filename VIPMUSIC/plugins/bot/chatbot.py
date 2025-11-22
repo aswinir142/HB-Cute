@@ -375,4 +375,3 @@ async def chatbot_handler(client, message: Message):
                 await message.reply_text("I don't understand.")
         except:
             pass
-
